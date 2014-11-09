@@ -37,6 +37,8 @@ import javafx.stage.Popup;
 import javafx.stage.Window;
 
 import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 import org.loadui.testfx.GuiTest;
 import org.loadui.testfx.exceptions.NoNodesFoundException;
 
@@ -46,6 +48,8 @@ import org.loadui.testfx.exceptions.NoNodesFoundException;
  * https://github.com/SmartBear/TestFX/blob/master/src/main/java/org/loadui/testfx/GuiTest.java
  */
 abstract public class JFXtrasGuiTest extends org.loadui.testfx.GuiTest {
+	
+	@Rule public TestName testName = new TestName();
 	
 	public JFXtrasGuiTest() {
 		// default we're in US locale: keep (re)setting this for each test
@@ -95,6 +99,19 @@ abstract public class JFXtrasGuiTest extends org.loadui.testfx.GuiTest {
 		throw new IllegalStateException("Popup is not visible (and should be)"); 
 	}
 
+	protected void forceCloseAllPopups() {
+		TestUtil.waitForPaintPulse();
+		for (Window w : getWindows() ) {
+			if (w instanceof Popup) {
+				Popup lPopup = (Popup)w;
+				System.out.println("force closing popup: " + lPopup);
+				TestUtil.runThenWaitForPaintPulse( () -> {
+					lPopup.hide();
+				});
+			}
+		}
+	}
+	
 	protected void clear(Node textField) {
 		click(textField);
 		push(KeyCode.CONTROL, KeyCode.A);

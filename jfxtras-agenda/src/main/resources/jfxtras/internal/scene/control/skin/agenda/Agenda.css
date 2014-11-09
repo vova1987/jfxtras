@@ -47,7 +47,7 @@
 	-fx-background-color: #eeeeee90;
 }
 
-/* TODO: for some reason this does not work: removing today from the style classes does not clear the grayish background 
+/* TBEERNOT: for some reason this does not work: removing today from the style classes does not clear the grayish background 
 .AgendaWeekSkin .today {
 	-fx-background-color: #eeeeee90;
 }
