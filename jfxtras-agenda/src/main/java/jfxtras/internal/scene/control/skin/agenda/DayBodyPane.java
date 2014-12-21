@@ -38,6 +38,7 @@ class DayBodyPane extends Pane
 		
 		// for debugging setStyle("-fx-border-color:PINK;-fx-border-width:4px;");		
 		getStyleClass().add("Day");
+		setId("DayBodyPane" + localDateObjectProperty.get()); // for testing
 		
 		// react to changes in the appointments
 		allAppointments.addOnChangeListener( () -> {

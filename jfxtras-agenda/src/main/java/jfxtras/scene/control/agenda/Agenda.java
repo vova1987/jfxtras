@@ -308,6 +308,10 @@ public class Agenda extends Control
 		
 		public LocalDateTime getEndDateTime() { return end; }
 		final LocalDateTime end; 
+		
+		public String toString() {
+			return super.toString() + " " + start + " to " + end;
+		}
 	}
 	
 	/**

@@ -36,7 +36,9 @@ import javafx.scene.input.KeyCode;
 import javafx.stage.Popup;
 import javafx.stage.Window;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.loadui.testfx.GuiTest;
@@ -52,8 +54,20 @@ abstract public class JFXtrasGuiTest extends org.loadui.testfx.GuiTest {
 	@Rule public TestName testName = new TestName();
 	
 	public JFXtrasGuiTest() {
+	}
+	
+	@Before
+	public void before() {
+		System.out.println("========================================================================\n" + testName.getMethodName());
+		
 		// default we're in US locale: keep (re)setting this for each test
 		Locale.setDefault(Locale.US);
+	}
+	
+	@After
+	public void after() {
+		// this is required, otherwise a popup from a previous test may influence the active test
+		forceCloseAllPopups();
 	}
 	
 	/**

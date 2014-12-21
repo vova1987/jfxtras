@@ -19,7 +19,9 @@ public class AppointmentTaskBodyPane extends AppointmentAbstractTrackedPane {
 		getChildren().add(createTimeText());
 		
 		// add summary
-		getChildren().add(createSummaryText());			
+		if (appointment.getSummary() != null) {
+			getChildren().add(createSummaryText());
+		}
 	}
 	private String startAsString;
 	

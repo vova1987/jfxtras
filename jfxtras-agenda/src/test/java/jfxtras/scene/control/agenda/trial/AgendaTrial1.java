@@ -29,15 +29,21 @@
 
 package jfxtras.scene.control.agenda.trial;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.WeekFields;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javafx.application.Application;
+import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -46,6 +52,7 @@ import javafx.util.Callback;
 import jfxtras.internal.scene.control.skin.DateTimeToCalendarHelper;
 import jfxtras.scene.control.CalendarTextField;
 import jfxtras.scene.control.agenda.Agenda;
+import jfxtras.scene.control.agenda.Agenda.Appointment;
 import jfxtras.scene.control.agenda.Agenda.AppointmentGroup;
 import jfxtras.scene.control.agenda.Agenda.DateTimeRange;
 
@@ -122,7 +129,12 @@ public class AgendaTrial1 extends Application {
 		int lTodayMonth = lToday.getMonthValue();
 		int lTodayDay = lToday.getDayOfMonth();
 		int idx = 0;
-		lAgenda.appointments().addAll(
+		final String lIpsum = "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus";
+		LocalDateTime lMultipleDaySpannerStartDateTime = lToday.atStartOfDay().plusHours(5);
+		lMultipleDaySpannerStartDateTime = lMultipleDaySpannerStartDateTime.minusDays(lMultipleDaySpannerStartDateTime.getDayOfWeek().getValue() > 3 && lMultipleDaySpannerStartDateTime.getDayOfWeek().getValue() < 7 ? 3 : -1);
+		LocalDateTime lMultipleDaySpannerEndDateTime = lMultipleDaySpannerStartDateTime.plusDays(2);
+		
+		Appointment[] lTestAppointments = new Appointment[]{
 		/*
 		 *  . . . .
 		 *  . . . . 
@@ -251,64 +263,55 @@ public class AgendaTrial1 extends Application {
 				.withDescription("A description " + (++idx))
 				.withAppointmentGroup(lAppointmentGroupMap.get("group13"))
 				.withWholeDay(true)
-		);
-		final String lIpsum = "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus";
-		// day spanner
-		{
-			LocalDateTime lStart = lToday.atStartOfDay().plusHours(5);
-			lStart = lStart.minusDays(lStart.getDayOfWeek().getValue() > 3 && lStart.getDayOfWeek().getValue() < 7 ? 3 : -1);
-			LocalDateTime lEnd = lStart.plusDays(2);
-			
-			Agenda.Appointment lAppointment = new Agenda.AppointmentImpl2()
-			.withStartDateTime(lStart)
-			.withEndDateTime(lEnd)
-			.withSummary(lIpsum.substring(0, 20 + new Random().nextInt(lIpsum.length() - 20)))
-			.withDescription("A description " + (++idx))
-			.withAppointmentGroup(lAppointmentGroupMap.get("group20"));
-			
-			lAgenda.appointments().add(lAppointment);
-		}
+		, 	new Agenda.AppointmentImpl2()
+				.withStartDateTime(lMultipleDaySpannerStartDateTime)
+				.withEndDateTime(lMultipleDaySpannerEndDateTime)
+				.withSummary(lIpsum.substring(0, 20 + new Random().nextInt(lIpsum.length() - 20)))
+				.withDescription("A description " + (++idx))
+				.withAppointmentGroup(lAppointmentGroupMap.get("group20"))
+		};
 		
 
-//		// update range
-//		final AtomicBoolean lSkippedFirstRangeChange = new AtomicBoolean(false);		
-//		lAgenda.calendarRangeCallbackProperty().set(new Callback<Agenda.CalendarRange, Void>()
-//		{
-//			@Override
-//			public Void call(CalendarRange arg0)
-//			{
-//				// the first change should not be processed, because it is set above
-//				if (lSkippedFirstRangeChange.get() == false)
-//				{
-//					lSkippedFirstRangeChange.set(true);
-//					return null;
-//				}
-//				
-//				// add a whole bunch of random appointments
-//				lAgenda.appointments().clear();
-//				for (int i = 0; i < 20; i++)
-//				{
-//					Calendar lFirstDayOfWeekCalendar = getFirstDayOfWeekCalendar(lAgenda.getLocale(), lAgenda.getDisplayedCalendar());
-//					
-//					LocalDateTime lStart = DateTimeToCalendarHelper.createLocalDateTimeFromCalendar(lFirstDayOfWeekCalendar);
-//					lStart.plusDays(new Random().nextInt(7));
-//					lStart.plusHours(new Random().nextInt(24));
-//					lStart.plusMinutes(new Random().nextInt(60));
-//					
-//					LocalDateTime lEnd = lStart.plusMinutes(15 + new Random().nextInt(24 * 60));
-//					
-//					Agenda.Appointment lAppointment = new Agenda.AppointmentImpl2()
-//					.withStartDateTime(lStart)
-//					.withEndDateTime(lEnd)
-//					.withWholeDay(new Random().nextInt(50) > 40)
-//					.withSummary(lIpsum.substring(0, new Random().nextInt(50)))
-//					.withDescription(lIpsum.substring(0, new Random().nextInt(lIpsum.length())))
-//					.withAppointmentGroup(lAppointmentGroupMap.get("group0" + (new Random().nextInt(10))));					
-//					lAgenda.appointments().add(lAppointment);
-//				}
-//				return null;
-//			}
-//		});
+		// update range
+		lAgenda.dateTimeRangeCallbackProperty().set( (DateTimeRange range) ->  {
+
+			lAgenda.appointments().clear();
+			LocalDateTime now = LocalDateTime.now();
+			
+			if ( (range.getStartDateTime().isBefore(now) || range.getStartDateTime().isEqual(now))
+			  && (range.getEndDateTime().isAfter(now) || range.getEndDateTime().isEqual(now))
+			) {
+				// add predefined appointments 
+				lAgenda.appointments().addAll(lTestAppointments);
+			}
+			else {
+				WeekFields weekFields = WeekFields.of(Locale.getDefault());
+				int firstDayOfWeek = weekFields.getFirstDayOfWeek().getValue();
+				int currentDayOfWeek = now.getDayOfWeek().getValue();
+				LocalDateTime lFirstDayOfWeekCalendar = now.plusDays( currentDayOfWeek >= firstDayOfWeek ? currentDayOfWeek - firstDayOfWeek : firstDayOfWeek - currentDayOfWeek);
+				
+				// add a whole bunch of random appointments
+				for (int i = 0; i < 20; i++)
+				{
+					LocalDateTime lStart = lFirstDayOfWeekCalendar
+						.plusDays(new Random().nextInt(7))
+						.plusHours(new Random().nextInt(24))
+						.plusMinutes(new Random().nextInt(60));
+					
+					LocalDateTime lEnd = (new Random().nextInt(7) == 0 ? null : lStart.plusMinutes(15 + new Random().nextInt(24 * 60)));
+					
+					Agenda.Appointment lAppointment = new Agenda.AppointmentImpl2()
+						.withStartDateTime(lStart)
+						.withEndDateTime(lEnd)
+						.withWholeDay(new Random().nextInt(50) > 40)
+						.withSummary(lIpsum.substring(0, new Random().nextInt(50)))
+						.withDescription(lIpsum.substring(0, new Random().nextInt(lIpsum.length())))
+						.withAppointmentGroup(lAppointmentGroupMap.get("group0" + (new Random().nextInt(10))));					
+					lAgenda.appointments().add(lAppointment);
+				}
+			}
+			return null;
+		});
 		
 		HBox lHBox = new HBox();
 		CalendarTextField lCalendarTextField = new CalendarTextField();

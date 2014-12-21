@@ -39,6 +39,7 @@ public class DayHeaderPane extends Pane {
 		dayText.getStyleClass().add("DayLabel");
 		dayText.setX( layoutHelp.paddingProperty.get() ); // align left
 		dayText.setY( dayText.prefHeight(0) );
+		dayText.setId("DayHeader" + localDateObjectProperty.get());
 		getChildren().add(dayText);
 		
 		// clip the visible part

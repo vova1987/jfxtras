@@ -45,8 +45,6 @@ import jfxtras.test.JFXtrasGuiTest;
 import jfxtras.test.TestUtil;
 import junit.framework.Assert;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -54,17 +52,6 @@ import org.junit.Test;
  */
 public class AgendaBasicTest extends JFXtrasGuiTest {
 
-	@Before
-	public void before() {
-		System.out.println("========================================================================\n" + testName.getMethodName());
-	}
-	
-	@After
-	public void after() {
-		// this is required, otherwise a popup from a previous test may influence the active test
-		forceCloseAllPopups();
-	}
-	
 	/**
 	 * 
 	 */
@@ -180,58 +167,6 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 		find("#AppointmentRegularBodyPane1"); // validate that the pane has the expected id
 		//TestUtil.sleep(3000);
 	}
-
-	/**
-	 * 
-	 */
-	@Test
-	public void moveAppointmentByDragging()
-	{
-		TestUtil.runThenWaitForPaintPulse( () -> {
-			agenda.appointments().add( new Agenda.AppointmentImpl()
-	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T10:00:00.000"))
-	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
-	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
-            );
-		});
-		find("#AppointmentRegularBodyPane1"); // validate that the pane has the expected id
-				
-		move("#hourLine11"); // the pane is beneath the mouse now since it runs from 10 to 12
-		press(MouseButton.PRIMARY);
-		move("#hourLine15");
-		release(MouseButton.PRIMARY);
-		
-		Assert.assertEquals(1, agenda.appointments().size() );
-		Assert.assertEquals("2014-01-01T14:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getStartTime()) );
-		Assert.assertEquals("2014-01-01T16:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getEndTime()) );
-		//TestUtil.sleep(3000);
-	}
-
-	/**
-	 * 
-	 */
-	@Test
-	public void extendAppointmentByDragging()
-	{
-		TestUtil.runThenWaitForPaintPulse( () -> {
-			agenda.appointments().add( new Agenda.AppointmentImpl()
-	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T10:00:00.000"))
-	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
-	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
-            );
-		});
-				
-		move("#AppointmentRegularBodyPane1 .DurationDragger"); 
-		press(MouseButton.PRIMARY);
-		move("#hourLine15");
-		release(MouseButton.PRIMARY);
-		
-		Assert.assertEquals(1, agenda.appointments().size() );
-		Assert.assertEquals("2014-01-01T10:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getStartTime()) );
-		Assert.assertEquals("2014-01-01T15:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getEndTime()) );
-		//TestUtil.sleep(3000);
-	}
-
 	/**
 	 * 
 	 */
@@ -359,8 +294,245 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 		}
 		//TestUtil.sleep(3000);
 	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void dragRegularAppointment()
+	{
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T10:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+		});
+		find("#AppointmentRegularBodyPane1"); // validate that the pane has the expected id
+				
+		move("#hourLine11"); // the pane is beneath the mouse now since it runs from 10 to 12
+		press(MouseButton.PRIMARY);
+		move("#hourLine15");
+		release(MouseButton.PRIMARY);
+		
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals("2014-01-01T14:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getStartTime()) );
+		Assert.assertEquals("2014-01-01T16:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getEndTime()) );
+		//TestUtil.sleep(3000);
+	}
+	
+	/**
+	 * 
+	 */
+	@Test
+	public void dragRegularAppointmentToNextDay()
+	{
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T10:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+		});
+		find("#AppointmentRegularBodyPane1"); // validate that the pane has the expected id
+				
+		move("#hourLine11"); // the pane is beneath the mouse now since it runs from 10 to 12
+		press(MouseButton.PRIMARY);
+		moveBy(100, 0);
+		release(MouseButton.PRIMARY);
+		
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals("2014-01-02T10:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getStartTime()) );
+		Assert.assertEquals("2014-01-02T12:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getEndTime()) );
+		//TestUtil.sleep(3000);
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void extendAppointmentByDragging()
+	{
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T10:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+		});
+				
+		move("#AppointmentRegularBodyPane1 .DurationDragger"); 
+		press(MouseButton.PRIMARY);
+		move("#hourLine15");
+		release(MouseButton.PRIMARY);
+		
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals("2014-01-01T10:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getStartTime()) );
+		Assert.assertEquals("2014-01-01T15:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getEndTime()) );
+		//TestUtil.sleep(3000);
+	}
+
+
+	/**
+	 * 
+	 */
+	@Test
+	public void dragWholeDayToOutside()
+	{
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T10:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
+	            .withWholeDay(true)
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+		});
+		
+		// make sure the two nodes exist 
+		assertFind("#AppointmentWholedayBodyPane1");
+		assertFind("#AppointmentWholedayHeaderPane1");
+		
+		move("#AppointmentWholedayBodyPane1"); 
+		press(MouseButton.PRIMARY);
+		move(0, 0);
+		release(MouseButton.PRIMARY);
+		
+		// nothing changed 
+		Assert.assertEquals(1, agenda.appointments().size() );
+		assertFind("#AppointmentWholedayBodyPane1");
+		assertFind("#AppointmentWholedayHeaderPane1");
+		// TestUtil.sleep(3000);
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void dragWholeDayToBody()
+	{
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T00:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
+	            .withWholeDay(true)
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+		});
+		
+		// make sure the two nodes exist 
+		assertFind("#AppointmentWholedayBodyPane1");
+		assertFind("#AppointmentWholedayHeaderPane1");
+		
+		// drag from header to body
+		move("#AppointmentWholedayHeaderPane1"); 
+		press(MouseButton.PRIMARY);
+		move("#hourLine10");
+		release(MouseButton.PRIMARY);
+		
+		// now there should be a regular appointment
+		assertFind("#AppointmentRegularBodyPane1");
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals("2014-01-01T00:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getStartTime()) );
+		Assert.assertEquals("2014-01-02T00:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getEndTime()) );
+		//TestUtil.sleep(3000);
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void dragWholeDayTaskToBody()
+	{
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T00:00:00.000"))
+	            .withWholeDay(true)
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+		});
+		
+		// make sure the two nodes exist 
+		assertFind("#AppointmentWholedayBodyPane1");
+		assertFind("#AppointmentWholedayHeaderPane1");
+		
+		// drag from header to body
+		move("#AppointmentWholedayHeaderPane1"); 
+		press(MouseButton.PRIMARY);
+		move("#hourLine10");
+		release(MouseButton.PRIMARY);
+		
+		// now there should be a regular appointment
+		assertFind("#AppointmentTaskBodyPane1");
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals("2014-01-01T10:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getStartTime()) );
+		Assert.assertNull(agenda.appointments().get(0).getEndTime());
+		//TestUtil.sleep(3000);
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void dragRegularToHeader()
+	{
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T01:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+		});
+		
+		// make sure the node exist 
+		assertFind("#AppointmentRegularBodyPane1");
+		
+		// drag from header to body
+		move("#AppointmentRegularBodyPane1"); 
+		press(MouseButton.PRIMARY);
+		move("#DayHeader2014-01-02"); // header of next day
+		release(MouseButton.PRIMARY);
+		
+		// now there should be a regular appointment
+		assertFind("#AppointmentWholedayBodyPane1");
+		assertFind("#AppointmentWholedayHeaderPane1");
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals("2014-01-02T01:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getStartTime()) );
+		Assert.assertTrue(agenda.appointments().get(0).isWholeDay());
+		//TestUtil.sleep(3000);
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void dragTaskToHeader()
+	{
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T01:00:00.000"))
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+		});
+		
+		// make sure the node exist 
+		assertFind("#AppointmentTaskBodyPane1");
+		
+		// drag from header to body
+		move("#AppointmentTaskBodyPane1"); 
+		press(MouseButton.PRIMARY);
+		move("#DayHeader2014-01-02"); // header of next day
+		release(MouseButton.PRIMARY);
+		
+		// now there should be a regular appointment
+		assertFind("#AppointmentWholedayBodyPane1");
+		assertFind("#AppointmentWholedayHeaderPane1");
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals("2014-01-02T01:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getStartTime()) );
+		Assert.assertTrue(agenda.appointments().get(0).isWholeDay());
+		//TestUtil.sleep(3000);
+	}
 	
 	// TODO: create new wholeday appointment by clicking in the header
-	// TODO: drag in the header
 	// TODO: drag from header to day and vice versa
+	// TODO: select
 }

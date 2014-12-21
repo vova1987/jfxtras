@@ -154,6 +154,10 @@ abstract public class AppointmentAbstractPane extends Pane {
 			
 			// determine endDateTime of the drag
 			LocalDateTime dragEndDateTime = layoutHelp.skin.convertClickToDateTime(mouseEvent.getScreenX(), mouseEvent.getScreenY());
+			if (dragEndDateTime == null) {
+				// dropped somewhere outside, abort
+				return;
+			}
 			boolean dragEndInDayBody = dragInDayBody(dragEndDateTime);
 			boolean dragEndInDayHeader = dragInDayHeader(dragEndDateTime);
 			dragEndDateTime = layoutHelp.roundTimeToNearestMinutes(dragEndDateTime, roundToMinutes);
@@ -194,13 +198,16 @@ abstract public class AppointmentAbstractPane extends Pane {
 			else if ( (dragStartInDayHeader && dragEndInDayBody) ) {
 				
 				appointment.setWholeDay(false);
-				
-				// simply add the duration, but without time
-				Period period = Period.between(dragStartDateTime.toLocalDate(), dragEndDateTime.toLocalDate());
-				if (appointment.getStartDateTime() != null) {
-					appointment.setStartDateTime( appointment.getStartDateTime().toLocalDate().plus(period).atStartOfDay() );
+
+				// if this is a task
+				if (appointment.getStartDateTime() != null && appointment.getEndDateTime() == null) {
+					// set the drop time as the task time
+					appointment.setStartDateTime(dragEndDateTime );
 				}
-				if (appointment.getEndDateTime() != null) {
+				else {
+					// simply add the duration, but without time
+					Period period = Period.between(dragStartDateTime.toLocalDate(), dragEndDateTime.toLocalDate());
+					appointment.setStartDateTime( appointment.getStartDateTime().toLocalDate().plus(period).atStartOfDay() );
 					appointment.setEndDateTime( appointment.getEndDateTime().toLocalDate().plus(period).plusDays(1).atStartOfDay() );
 				}
 			}
