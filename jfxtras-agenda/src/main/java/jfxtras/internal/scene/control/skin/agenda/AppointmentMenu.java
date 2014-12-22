@@ -217,7 +217,7 @@ public class AppointmentMenu extends Rectangle {
 		wholedayCheckBox.selectedProperty().addListener( (observable, oldValue, newValue) ->  {
 			appointment.setWholeDay(newValue);
 			if (newValue == true) {
-				appointment.setEndTime(null);
+				appointment.setEndDateTime(null);
 			}
 			else {
 				LocalDateTime lEndTime = appointment.getStartDateTime().plusMinutes(30);

@@ -8,7 +8,9 @@ import javafx.scene.Cursor;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Callback;
 import jfxtras.scene.control.agenda.Agenda;
+import jfxtras.scene.control.agenda.Agenda.Appointment;
 import jfxtras.util.NodeUtil;
 
 abstract public class AppointmentAbstractPane extends Pane {
@@ -63,6 +65,10 @@ abstract public class AppointmentAbstractPane extends Pane {
 			// no one else
 			mouseEvent.consume();
 			if (mouseEvent.isPrimaryButtonDown() == false) {
+				return;
+			}
+			if (mouseEvent.getClickCount() > 1) {
+				action();
 				return;
 			}
 			if (draggable != Draggable.YES) {
@@ -219,13 +225,24 @@ abstract public class AppointmentAbstractPane extends Pane {
 			// redo whole week
 			layoutHelp.skin.setupAppointments();					
 		});
-		
 	}
 	private Rectangle dragRectangle;
 	private double startX = 0;
 	private double startY = 0;
 	private boolean mouseActuallyHasDragged = false;
 	private final int roundToMinutes = 5;
+	
+	/**
+	 * 
+	 */
+	private void action() {
+		// has the client regsitered an action
+		Callback<Appointment, Void> lCallback = layoutHelp.skinnable.getActionCallback();
+		if (lCallback != null) {
+			lCallback.call(appointment);
+			return;
+		}
+	}
 
 	/**
 	 * 

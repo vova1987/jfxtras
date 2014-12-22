@@ -282,6 +282,15 @@ public class Agenda extends Control
 	public void setEditAppointmentCallback(Callback<Appointment, Void> value) { this.editAppointmentCallbackObjectProperty.setValue(value); }
 	public Agenda withEditAppointmentCallback(Callback<Appointment, Void> value) { setEditAppointmentCallback(value); return this; }
 	
+	/** actionCallback:
+	 * This triggered when the action is called on an appointment, usually this is a double click
+	 */
+	public ObjectProperty<Callback<Appointment, Void>> actionCallbackProperty() { return actionCallbackObjectProperty; }
+	final private ObjectProperty<Callback<Appointment, Void>> actionCallbackObjectProperty = new SimpleObjectProperty<Callback<Appointment, Void>>(this, "actionCallback", null);
+	public Callback<Appointment, Void> getActionCallback() { return this.actionCallbackObjectProperty.getValue(); }
+	public void setActionCallback(Callback<Appointment, Void> value) { this.actionCallbackObjectProperty.setValue(value); }
+	public Agenda withActionCallback(Callback<Appointment, Void> value) { setActionCallback(value); return this; }
+	
 	/**
 	 * A Calendar range, for callbacks
 	 */
