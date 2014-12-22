@@ -76,7 +76,7 @@ abstract public class AppointmentAbstractPane extends Pane {
 			setCursor(Cursor.MOVE);
 			double lX = NodeUtil.screenX(this) - NodeUtil.screenX(layoutHelp.dragPane);
 			double lY = NodeUtil.screenY(this) - NodeUtil.screenY(layoutHelp.dragPane);
-			dragRectangle = new Rectangle(NodeUtil.snapXY(lX), NodeUtil.snapXY(lY), NodeUtil.snapWH(lX, getWidth()), NodeUtil.snapWH(lY, (appointment.isWholeDay() ? layoutHelp.titleCalendarHeightProperty.get() : getHeight())) );
+			dragRectangle = new Rectangle(NodeUtil.snapXY(lX), NodeUtil.snapXY(lY), NodeUtil.snapWH(lX, getWidth()), NodeUtil.snapWH(lY, (appointment.isWholeDay() ? layoutHelp.titleDateTimeHeightProperty.get() : getHeight())) );
 			dragRectangle.getStyleClass().add("GhostRectangle");
 			layoutHelp.dragPane.getChildren().add(dragRectangle);
 			

@@ -1,7 +1,6 @@
 package jfxtras.internal.scene.control.skin.agenda;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.time.LocalDateTime;
 
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
@@ -16,8 +15,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Popup;
 import javafx.util.Callback;
-import jfxtras.scene.control.CalendarTextField;
 import jfxtras.scene.control.ImageViewButton;
+import jfxtras.scene.control.LocalDateTimeTextField;
 import jfxtras.scene.control.agenda.Agenda.Appointment;
 import jfxtras.scene.control.agenda.Agenda.AppointmentGroup;
 import jfxtras.util.NodeUtil;
@@ -109,7 +108,7 @@ public class AppointmentMenu extends Rectangle {
 		lVBox.getChildren().add(createEndTextField());
 
 		// wholeday
-		if ((appointment.isWholeDay() != null && appointment.isWholeDay() == true) || appointment.getEndTime() != null) {
+		if ((appointment.isWholeDay() != null && appointment.isWholeDay() == true) || appointment.getEndDateTime() != null) {
 			lVBox.getChildren().add(createWholedayCheckbox());
 		}
 		
@@ -154,58 +153,57 @@ public class AppointmentMenu extends Rectangle {
 	 * 
 	 * @return
 	 */
-	private CalendarTextField createStartTextField() {
-		startCalendarTextField = new CalendarTextField().withDateFormat(SimpleDateFormat.getDateTimeInstance());
-		startCalendarTextField.setLocale(layoutHelp.skinnable.getLocale());
-		startCalendarTextField.setCalendar(appointment.getStartTime());
+	private LocalDateTimeTextField createStartTextField() {
+		startTextField = new LocalDateTimeTextField();
+		startTextField.setLocale(layoutHelp.skinnable.getLocale());
+		startTextField.setLocalDateTime(appointment.getStartDateTime());
 		
 		// event handling
-		startCalendarTextField.calendarProperty().addListener( (observable, oldValue, newValue) ->  {
+		startTextField.localDateTimeProperty().addListener( (observable, oldValue, newValue) ->  {
 			
 			// remember
-			Calendar lOldStart = appointment.getStartTime();
+			LocalDateTime lOldStart = appointment.getStartDateTime();
 
 			// set
-			appointment.setStartTime(newValue);
+			appointment.setStartDateTime(newValue);
 
 			// update end date
-			if (appointment.getEndTime() != null) {
+			if (appointment.getEndDateTime() != null) {
 				
 				// enddate = start + duration
-				long lDurationInMS = appointment.getEndTime().getTimeInMillis() - lOldStart.getTimeInMillis();
-				Calendar lEndCalendar = (Calendar)appointment.getStartTime().clone();
-				lEndCalendar.add(Calendar.MILLISECOND, (int)lDurationInMS);
-				appointment.setEndTime(lEndCalendar);
+				long lDurationInNano = appointment.getEndDateTime().getNano() - lOldStart.getNano();
+				LocalDateTime lEndLocalDateTime = appointment.getStartDateTime().plusNanos(lDurationInNano);
+				appointment.setEndDateTime(lEndLocalDateTime);
 
 				// update field
-				endCalendarTextField.setCalendar(appointment.getEndTime());
+				endTextField.setLocalDateTime(appointment.getEndDateTime());
 			}
 
 			// refresh is done upon popup close
 		});
 
-		return startCalendarTextField;
+		return startTextField;
 	}
-	private CalendarTextField startCalendarTextField = null;
+	private LocalDateTimeTextField startTextField = null;
 
 	/**
 	 * 
 	 * @return
 	 */
-	private CalendarTextField createEndTextField() {
-		endCalendarTextField = new CalendarTextField().withDateFormat(SimpleDateFormat.getDateTimeInstance());
-		endCalendarTextField.setLocale(layoutHelp.skinnable.getLocale());
-		endCalendarTextField.setCalendar(appointment.getEndTime());
-		endCalendarTextField.setVisible(appointment.getEndTime() != null);
+	private LocalDateTimeTextField createEndTextField() {
+		endTextField = new LocalDateTimeTextField();
+		endTextField.setLocale(layoutHelp.skinnable.getLocale());
+		endTextField.setLocalDateTime(appointment.getEndDateTime());
+		endTextField.setVisible(appointment.getEndDateTime() != null);
 
-		endCalendarTextField.calendarProperty().addListener( (observable, oldValue, newValue) ->  {
-			appointment.setEndTime(newValue);
+		endTextField.localDateTimeProperty().addListener( (observable, oldValue, newValue) ->  {
+			appointment.setEndDateTime(newValue);
 			// refresh is done upon popup close
 		});
 
-		return endCalendarTextField;
+		return endTextField;
 	}
-	private CalendarTextField endCalendarTextField = null;
+	private LocalDateTimeTextField endTextField = null;
 
 	/**
 	 * 
@@ -222,12 +220,11 @@ public class AppointmentMenu extends Rectangle {
 				appointment.setEndTime(null);
 			}
 			else {
-				Calendar lEndTime = (Calendar)appointment.getStartTime().clone();
-				lEndTime.add(Calendar.MINUTE, 30);
-				appointment.setEndTime(lEndTime);
-				endCalendarTextField.setCalendar(appointment.getEndTime());
+				LocalDateTime lEndTime = appointment.getStartDateTime().plusMinutes(30);
+				appointment.setEndDateTime(lEndTime);
+				endTextField.setLocalDateTime(appointment.getEndDateTime());
 			}
-			endCalendarTextField.setVisible(appointment.getEndTime() != null);
+			endTextField.setVisible(appointment.getEndDateTime() != null);
 			// refresh is done upon popup close
 		});
 		

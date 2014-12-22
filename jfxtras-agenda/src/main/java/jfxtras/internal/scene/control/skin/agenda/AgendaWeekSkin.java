@@ -35,9 +35,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -47,7 +46,6 @@ import javafx.scene.Node;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.ScrollPaneBuilder;
 import javafx.scene.control.SkinBase;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
@@ -96,7 +94,7 @@ implements AgendaSkin
 		refreshLocale();
 		
 		// react to changes in the displayed calendar 
-		getSkinnable().displayedCalendar().addListener( (observable) -> {
+		getSkinnable().displayedDateTime().addListener( (observable) -> {
 			assignDateToDayAndHeaderPanes();
 			setupAppointments();
 		});
@@ -149,14 +147,11 @@ implements AgendaSkin
 	 */
 	private void assignDateToDayAndHeaderPanes()
 	{
-		// TBEERNOT: rework to LocalDate
-		
-		// get the first day of week calendar
+		// get the first day of week
 		LocalDate lStartLocalDate = getFirstDayOfWeekLocalDate();
 		LocalDate lLocalDate = lStartLocalDate;
 		
 		// assign it to each day pane
-		LocalDate lEndLocalDate = null;
 		for (int i = 0; i < 7; i++)
 		{
 			// set the calendar
@@ -166,7 +161,7 @@ implements AgendaSkin
 			lDayHeaderPane.localDateObjectProperty.set(lLocalDate);
 			lLocalDate = lLocalDate.plusDays(1);
 		}		
-		lEndLocalDate = lLocalDate;
+		LocalDate lEndLocalDate = lLocalDate;
 		
 		// place the now line
 		nowUpdateRunnable.run(); 
@@ -205,8 +200,6 @@ implements AgendaSkin
 			String lWeekendOrWeekday = isWeekend(lDayHeaderPane.localDateObjectProperty.get()) ? "weekend" : "weekday";
 			lDayHeaderPane.getStyleClass().removeAll("weekend", "weekday");
 			lDayHeaderPane.getStyleClass().add(lWeekendOrWeekday);			
-//			lDayHeaderPane.calendarText.getStyleClass().removeAll("weekend", "weekday");
-//			lDayHeaderPane.calendarText.getStyleClass().add(lWeekendOrWeekday);
 		}
 	}
 
@@ -252,12 +245,11 @@ implements AgendaSkin
 		
 		// borderpane center
 		weekBodyPane = new WeekBodyPane();
-		weekScrollPane = ScrollPaneBuilder.create()
-			.content(weekBodyPane)
-			.hbarPolicy(ScrollBarPolicy.NEVER)
-			.fitToWidth(true)
-			.pannable(false) // panning would conflict with creating a new appointment
-			.build();
+		weekScrollPane = new ScrollPane();
+		weekScrollPane.setContent(weekBodyPane);
+		weekScrollPane.setHbarPolicy(ScrollBarPolicy.NEVER);
+		weekScrollPane.setFitToWidth(true);
+		weekScrollPane.setPannable(false); // panning would conflict with creating a new appointment
 		borderPane.setCenter(weekScrollPane);
 		// bind to the scrollpane's viewport
 		weekScrollPane.viewportBoundsProperty().addListener( (observable) -> {
@@ -473,9 +465,9 @@ implements AgendaSkin
 			maxOfWholeDayAppointments = Math.max(maxOfWholeDayAppointments, numberOfWholeDayAppointments);
 		}
 		layoutHelp.highestNumberOfWholedayAppointmentsProperty.set(maxOfWholeDayAppointments);
-		layoutHelp.titleCalendarHeightProperty.bind( layoutHelp.textHeightProperty.multiply(1.5) ); 
+		layoutHelp.titleDateTimeHeightProperty.bind( layoutHelp.textHeightProperty.multiply(1.5) ); 
 		layoutHelp.appointmentHeaderPaneHeightProperty.bind( layoutHelp.textHeightProperty.add(5) ); // not sure why the 5 is needed
-		layoutHelp.headerHeightProperty.bind( layoutHelp.highestNumberOfWholedayAppointmentsProperty.multiply(layoutHelp.appointmentHeaderPaneHeightProperty).add(layoutHelp.titleCalendarHeightProperty) );
+		layoutHelp.headerHeightProperty.bind( layoutHelp.highestNumberOfWholedayAppointmentsProperty.multiply(layoutHelp.appointmentHeaderPaneHeightProperty).add(layoutHelp.titleDateTimeHeightProperty) );
 
 		// time column
 		layoutHelp.timeWidthProperty.set( new Text("88:88").getBoundsInParent().getWidth() + layoutHelp.timeColumnWhitespaceProperty.get() );
@@ -504,33 +496,26 @@ implements AgendaSkin
 	
 	
 	/**
-	 * get the calendar for the first day of the week
+	 * get the datetime for the first day of the week
 	 */
-	private Calendar getFirstDayOfWeekCalendar()
+	private LocalDate getFirstDayOfWeekLocalDate()
 	{
-		Locale locale = getSkinnable().getLocale();
-		Calendar c = getSkinnable().getDisplayedCalendar();
-		
+		Locale lLocale = getSkinnable().getLocale();
+		WeekFields lWeekFields = WeekFields.of(lLocale);
+		int lFirstDayOfWeek = lWeekFields.getFirstDayOfWeek().getValue();
+		LocalDate lDisplayedDateTime = getSkinnable().getDisplayedDateTime().toLocalDate();
+		int lCurrentDayOfWeek = lDisplayedDateTime.getDayOfWeek().getValue();
+
 		// result
-		int lFirstDayOfWeek = Calendar.getInstance(locale).getFirstDayOfWeek();
-		int lCurrentDayOfWeek = c.get(Calendar.DAY_OF_WEEK);
-		int lDelta = 0;
 		if (lFirstDayOfWeek <= lCurrentDayOfWeek)
 		{
-			lDelta = -lCurrentDayOfWeek + lFirstDayOfWeek;
+			lDisplayedDateTime = lDisplayedDateTime.plusDays(-lCurrentDayOfWeek + lFirstDayOfWeek);
 		}
 		else
 		{
-			lDelta = -lCurrentDayOfWeek - (7-lFirstDayOfWeek);
+			lDisplayedDateTime = lDisplayedDateTime.plusDays(-lCurrentDayOfWeek - (7-lFirstDayOfWeek));
 		}
-		c = ((Calendar)c.clone());
-		c.add(Calendar.DATE, lDelta);
-		return c;
-	}
-	private LocalDate getFirstDayOfWeekLocalDate()
-	{
-		Calendar calendar = getFirstDayOfWeekCalendar();
-		return calendar == null ? null : ((GregorianCalendar)calendar).toZonedDateTime().toLocalDate();
+		return lDisplayedDateTime;
 	}
 	
 

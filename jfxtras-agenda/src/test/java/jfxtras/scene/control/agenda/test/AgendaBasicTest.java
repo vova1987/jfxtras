@@ -48,7 +48,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 /**
- * Created by Tom Eugelink on 26-12-13.
+ * 
  */
 public class AgendaBasicTest extends JFXtrasGuiTest {
 
@@ -146,7 +146,6 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 		//TestUtil.sleep(3000);
 	}
 
-
 	/**
 	 * 
 	 */
@@ -167,6 +166,28 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 		find("#AppointmentRegularBodyPane1"); // validate that the pane has the expected id
 		//TestUtil.sleep(3000);
 	}
+	
+	/**
+	 * 
+	 */
+	@Test
+	public void createWholedayAppointmentByClicking()
+	{
+		Assert.assertEquals(0, agenda.appointments().size() );
+		
+		move("#DayHeader2014-01-01");
+		press(MouseButton.PRIMARY);
+		release(MouseButton.PRIMARY);
+		
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals("2014-01-01T00:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getStartTime()) );
+		Assert.assertEquals("2014-01-02T00:00:00.000", TestUtil.quickFormatCalendarAsDateTime(agenda.appointments().get(0).getEndTime()) );
+		
+		assertFind("#AppointmentWholedayBodyPane1");
+		assertFind("#AppointmentWholedayHeaderPane1");
+		//TestUtil.sleep(3000);
+	}
+
 	/**
 	 * 
 	 */
@@ -308,7 +329,7 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
             );
 		});
-		find("#AppointmentRegularBodyPane1"); // validate that the pane has the expected id
+		assertFind("#AppointmentRegularBodyPane1"); 
 				
 		move("#hourLine11"); // the pane is beneath the mouse now since it runs from 10 to 12
 		press(MouseButton.PRIMARY);
@@ -334,7 +355,7 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
             );
 		});
-		find("#AppointmentRegularBodyPane1"); // validate that the pane has the expected id
+		assertFind("#AppointmentRegularBodyPane1");
 				
 		move("#hourLine11"); // the pane is beneath the mouse now since it runs from 10 to 12
 		press(MouseButton.PRIMARY);
@@ -535,4 +556,6 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 	// TODO: create new wholeday appointment by clicking in the header
 	// TODO: drag from header to day and vice versa
 	// TODO: select
+	// TODO: default locale EN, assert first day of week
+	// TODO: set locale to DE, determine first day of week
 }

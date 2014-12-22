@@ -38,7 +38,7 @@ public class LayoutHelp {
 	final DoubleProperty timeColumnWhitespaceProperty = new SimpleDoubleProperty(10);
 	final DoubleProperty wholedayAppointmentFlagpoleWidthProperty = new SimpleDoubleProperty(5);
 	final DoubleProperty textHeightProperty = new SimpleDoubleProperty(0);
-	final DoubleProperty titleCalendarHeightProperty = new SimpleDoubleProperty(0);
+	final DoubleProperty titleDateTimeHeightProperty = new SimpleDoubleProperty(0);
 	final DoubleProperty headerHeightProperty = new SimpleDoubleProperty(0);
 	final DoubleProperty appointmentHeaderPaneHeightProperty = new SimpleDoubleProperty(0);
 	final DoubleProperty timeWidthProperty = new SimpleDoubleProperty(0); 

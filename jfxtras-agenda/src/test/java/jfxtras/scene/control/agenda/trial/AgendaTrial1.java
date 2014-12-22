@@ -29,27 +29,21 @@
 
 package jfxtras.scene.control.agenda.trial;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javafx.application.Application;
-import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import jfxtras.internal.scene.control.skin.DateTimeToCalendarHelper;
 import jfxtras.scene.control.CalendarTextField;
 import jfxtras.scene.control.agenda.Agenda;
 import jfxtras.scene.control.agenda.Agenda.Appointment;
@@ -70,7 +64,7 @@ public class AgendaTrial1 extends Application {
 
         // add a node
 		final Agenda lAgenda = new Agenda();		
-//    	lAgenda.setLocale(new java.util.Locale("de")); // weeks starts on monday
+    	lAgenda.setLocale(new java.util.Locale("de")); // weeks starts on monday
 		
 		// setup appointment groups
 		final Map<String, Agenda.AppointmentGroup> lAppointmentGroupMap = new TreeMap<String, Agenda.AppointmentGroup>();

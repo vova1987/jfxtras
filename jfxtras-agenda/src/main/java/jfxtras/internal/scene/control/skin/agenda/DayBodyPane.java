@@ -70,11 +70,11 @@ class DayBodyPane extends Pane
 			}
 			
 			// show the rectangle
-			DayBodyPane.this.setCursor(Cursor.V_RESIZE);
+			setCursor(Cursor.V_RESIZE);
 			double lY = NodeUtil.snapXY(mouseEvent.getScreenY() - NodeUtil.screenY(DayBodyPane.this));
 			resizeRectangle = new Rectangle(0, lY, layoutHelp.dayWidthProperty.get(), 10);
 			resizeRectangle.getStyleClass().add("GhostRectangle");
-			DayBodyPane.this.getChildren().add(resizeRectangle);
+			getChildren().add(resizeRectangle);
 			
 			// this event should not be processed by the appointment area
 			mouseEvent.consume();
@@ -108,8 +108,8 @@ class DayBodyPane extends Pane
 			mouseEvent.consume();
 			
 			// reset ui
-			DayBodyPane.this.setCursor(Cursor.HAND);
-			DayBodyPane.this.getChildren().remove(resizeRectangle);
+			setCursor(Cursor.HAND);
+			getChildren().remove(resizeRectangle);
 			
 			// must have dragged (otherwise it is considered an "unselect all" action)
 			if (dragged == false) {
@@ -117,7 +117,7 @@ class DayBodyPane extends Pane
 			}
 			
 			// calculate the starttime
-			LocalDateTime lStartDateTime = DayBodyPane.this.localDateObjectProperty.get().atStartOfDay();
+			LocalDateTime lStartDateTime = localDateObjectProperty.get().atStartOfDay();
 			lStartDateTime = lStartDateTime.plusSeconds( (int)(resizeRectangle.getY() * layoutHelp.durationInMSPerPixelProperty.get() / 1000) );
 			lStartDateTime = layoutHelp.roundTimeToNearestMinutes(lStartDateTime, 5);
 			

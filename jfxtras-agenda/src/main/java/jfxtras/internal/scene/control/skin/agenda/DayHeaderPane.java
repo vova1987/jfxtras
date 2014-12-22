@@ -4,12 +4,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.Cursor;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import jfxtras.internal.scene.control.skin.DateTimeToCalendarHelper;
+import jfxtras.scene.control.agenda.Agenda;
 import jfxtras.scene.control.agenda.Agenda.Appointment;
 import jfxtras.util.NodeUtil;
 
@@ -67,6 +71,9 @@ public class DayHeaderPane extends Pane {
 		heightProperty().addListener( (observable) -> {
 			relayout();
 		});
+		
+		// setup the create appointment
+		setupMouse();
 	}
 
 	private void setLabel() {
@@ -131,6 +138,42 @@ public class DayHeaderPane extends Pane {
 		return appointments.size();
 	}
 	
+	
+	/**
+	 * 
+	 */
+	private void setupMouse() {
+		
+		// start new appointment
+		setOnMousePressed((mouseEvent) -> {
+			// if there is no one to handle the result, don't even bother
+			if (layoutHelp.skinnable.createAppointmentCallbackProperty().get() == null && layoutHelp.skinnable.newAppointmentCallbackProperty().get() == null) {
+				return;
+			}
+			
+			// no one else
+			mouseEvent.consume();
+			
+			// calculate the starttime
+			LocalDateTime lStartDateTime = localDateObjectProperty.get().atStartOfDay();
+			LocalDateTime lEndDateTime = lStartDateTime.plusDays(1);
+			
+			// ask the control to create a new appointment (null may be returned)
+			Agenda.Appointment lAppointment;
+			if (layoutHelp.skinnable.newAppointmentCallbackProperty().get() != null) {
+				lAppointment = layoutHelp.skinnable.newAppointmentCallbackProperty().get().call(new Agenda.DateTimeRange(lStartDateTime, lEndDateTime));
+			}
+			else {
+				lAppointment = layoutHelp.skinnable.createAppointmentCallbackProperty().get().call(new Agenda.CalendarRange(DateTimeToCalendarHelper.createCalendarFromLocalDateTime(lStartDateTime, Locale.getDefault()), DateTimeToCalendarHelper.createCalendarFromLocalDateTime(lEndDateTime, Locale.getDefault())));
+			}
+			if (lAppointment != null) {
+				lAppointment.setWholeDay(true);
+				layoutHelp.skinnable.appointments().add(lAppointment); // the appointments collection is listened to, so they will automatically be refreshed
+			}
+		});
+	}
+
+
 	
 	/**
 	 * 

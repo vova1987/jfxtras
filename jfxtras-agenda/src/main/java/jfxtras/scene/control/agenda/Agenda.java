@@ -29,10 +29,8 @@
 
 package jfxtras.scene.control.agenda;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 
 import javafx.beans.property.ObjectProperty;
@@ -45,6 +43,7 @@ import javafx.util.Callback;
 import jfxtras.internal.scene.control.skin.DateTimeToCalendarHelper;
 import jfxtras.internal.scene.control.skin.agenda.AgendaSkin;
 import jfxtras.internal.scene.control.skin.agenda.AgendaWeekSkin;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * This controls renders appointments similar to Google Calendar.
@@ -63,12 +62,12 @@ import jfxtras.internal.scene.control.skin.agenda.AgendaWeekSkin;
  * This method should return a new appointment object, for example:
  * [source,java]
  * --
- *      agenda.createAppointmentCallbackProperty().set(new Callback<Agenda.CalendarRange, Agenda.Appointment>() {
+ *      agenda.newAppointmentCallbackProperty().set(new Callback<Agenda.DateTimeRange, Agenda.Appointment>() {
  *           @Override
- *           public Agenda.Appointment call(Agenda.CalendarRange calendarRange) {
+ *           public Agenda.Appointment call(Agenda.DateTimeRange dateTimeRange) {
  *               return new Agenda.AppointmentImpl()
- *                       .withStartTime(calendarRange.getStartCalendar())
- *                       .withEndTime(calendarRange.getEndCalendar())
+ *                       .withStartTime(dateTimeRange.getStartDateTime())
+ *                       .withEndTime(dateTimeRange.getEndDateTime())
  *                       .withAppointmentGroup(new Agenda.AppointmentGroupImpl().withStyleClass("group1")); // it is better to have a map of appointment groups to get from
  *           }
  *       });
@@ -79,7 +78,6 @@ import jfxtras.internal.scene.control.skin.agenda.AgendaWeekSkin;
  * @author Tom Eugelink &lt;tbee@tbee.org&gt;
  */
 // TBEERNOT: should we use LocalDateTime or DateTime?
-// TBEERNOT: deprecate all Calendar, add DateTime alternatives
 public class Agenda extends Control
 {
 	// ==================================================================================================================
@@ -104,6 +102,9 @@ public class Agenda extends Control
 		// setup the CSS
 		// the -fx-skin attribute in the CSS sets which Skin class is used
 		this.getStyleClass().add(this.getClass().getSimpleName());
+		
+		// handle deprecated
+		DateTimeToCalendarHelper.syncLocalDateTime(displayedCalendarObjectProperty, displayedDateTimeObjectProperty, localeObjectProperty);
 		
 		// appointments
 		constructAppointments();
@@ -154,10 +155,10 @@ public class Agenda extends Control
 	final private ObservableList<AppointmentGroup> appointmentGroups =  javafx.collections.FXCollections.observableArrayList();
 
 	/** Locale: the locale is used to determine first-day-of-week, weekday labels, etc */
-	public ObjectProperty<Locale> localeProperty() { return iLocaleObjectProperty; }
-	final private ObjectProperty<Locale> iLocaleObjectProperty = new SimpleObjectProperty<Locale>(this, "locale", Locale.getDefault());
-	public Locale getLocale() { return iLocaleObjectProperty.getValue(); }
-	public void setLocale(Locale value) { iLocaleObjectProperty.setValue(value); }
+	public ObjectProperty<Locale> localeProperty() { return localeObjectProperty; }
+	final private ObjectProperty<Locale> localeObjectProperty = new SimpleObjectProperty<Locale>(this, "locale", Locale.getDefault());
+	public Locale getLocale() { return localeObjectProperty.getValue(); }
+	public void setLocale(Locale value) { localeObjectProperty.setValue(value); }
 	public Agenda withLocale(Locale value) { setLocale(value); return this; } 
 
 	/** 
@@ -165,20 +166,27 @@ public class Agenda extends Control
 	 * If the agenda is in week skin, it will display the week containing this date. (Things like FirstDayOfWeek are taken into account.)
 	 * In month skin, the month containing this date.
 	 */
-	public ObjectProperty<Calendar> displayedCalendar() { return displayedCalendarObjectProperty; }
-	private final ObjectProperty<Calendar> displayedCalendarObjectProperty = new SimpleObjectProperty<Calendar>(this, "displayedCalendar", Calendar.getInstance())
-	{
-		public void set(Calendar value)
-		{
+	@Deprecated public ObjectProperty<Calendar> displayedCalendar() { return displayedCalendarObjectProperty; }
+	private final ObjectProperty<Calendar> displayedCalendarObjectProperty = new SimpleObjectProperty<Calendar>(this, "displayedCalendar", Calendar.getInstance());
+	@Deprecated public Calendar getDisplayedCalendar() { return displayedCalendarObjectProperty.getValue(); }
+	@Deprecated public void setDisplayedCalendar(Calendar value) { displayedCalendarObjectProperty.setValue(value); }
+	@Deprecated public Agenda withDisplayedCalendar(Calendar value) { setDisplayedCalendar(value); return this; }
+	
+	/** 
+	 * The skin will use this date to determine what to display.
+	 */
+	public ObjectProperty<LocalDateTime> displayedDateTime() { return displayedDateTimeObjectProperty; }
+	private final ObjectProperty<LocalDateTime> displayedDateTimeObjectProperty = new SimpleObjectProperty<LocalDateTime>(this, "displayedDateTime", LocalDateTime.now()) {
+		public void set(LocalDateTime value) {
 			if (value == null) {
 				throw new NullPointerException("Null not allowed");
 			}
 			super.set(value);
 		}
 	};
-	public Calendar getDisplayedCalendar() { return displayedCalendarObjectProperty.getValue(); }
-	public void setDisplayedCalendar(Calendar value) { displayedCalendarObjectProperty.setValue(value); }
-	public Agenda withDisplayedCalendar(Calendar value) { setDisplayedCalendar(value); return this; }
+	public LocalDateTime getDisplayedDateTime() { return displayedDateTimeObjectProperty.getValue(); }
+	public void setDisplayedDateTime(LocalDateTime value) { displayedDateTimeObjectProperty.setValue(value); }
+	public Agenda withDisplayedDateTime(LocalDateTime value) { setDisplayedDateTime(value); return this; }
 	
 	/** selectedAppointments: */
 	public ObservableList<Appointment> selectedAppointments() { return selectedAppointments; }
@@ -349,21 +357,22 @@ public class Agenda extends Control
 		// ----
 		// Calendar
 		
+		/** This method is not used by the control, it can only be called when implemented by the user through the default Datetime methods on this interface **/  
 		default Calendar getStartTime() {
-			return DateTimeToCalendarHelper.createCalendarFromLocalDateTime(getStartDateTime(), getLocale()); // TBEERNOT: this default should throw an exception since it it not used by Agenda anymore
+			throw new NotImplementedException();
 		}
+		/** This method is not used by the control, it can only be called when implemented by the user through the default Datetime methods on this interface **/  
 		default public void setStartTime(Calendar c) {
-			setStartDateTime(DateTimeToCalendarHelper.createLocalDateTimeFromCalendar(c)); // TBEERNOT: this default should throw an exception since it it not used by Agenda anymore
+			throw new NotImplementedException();
 		}
 		
+		/** This method is not used by the control, it can only be called when implemented by the user through the default Datetime methods on this interface **/  
 		default public Calendar getEndTime() {
-			return DateTimeToCalendarHelper.createCalendarFromLocalDateTime(getEndDateTime(), getLocale()); // TBEERNOT: this default should throw an exception since it it not used by Agenda anymore
+			throw new NotImplementedException();
 		}
-		/**
-		 * End is exclusive
-		 */
+		/** This method is not used by the control, it can only be called when implemented by the user through the default Datetime methods on this interface **/  
 		default public void setEndTime(Calendar c) {
-			setEndDateTime(DateTimeToCalendarHelper.createLocalDateTimeFromCalendar(c)); // TBEERNOT: this default should throw an exception since it it not used by Agenda anymore
+			throw new NotImplementedException();
 		}
 		
 		// ----
@@ -388,6 +397,7 @@ public class Agenda extends Control
 		
 		/**
 		 * Only needed to implement this if you use calendar based setter and getters, and you are not satisfied with using the default locale to convert it to LocalDateTime.
+		 * Calendar unfortunately does not expose the Locale is was created under.
 		 * @return
 		 */
 		default Locale getLocale() {
@@ -460,9 +470,9 @@ public class Agenda extends Control
 		{
 			return super.toString()
 				 + ", "
-				 + quickFormatCalendar(this.getStartTime())
+				 + DateTimeToCalendarHelper.quickFormatCalendar(this.getStartTime())
 				 + " - "
-				 + quickFormatCalendar(this.getEndTime())
+				 + DateTimeToCalendarHelper.quickFormatCalendar(this.getEndTime())
 				 ;
 		}
 	}
@@ -534,31 +544,5 @@ public class Agenda extends Control
 		public String getStyleClass() { return styleClassObjectProperty.getValue(); }
 		public void setStyleClass(String value) { styleClassObjectProperty.setValue(value); }
 		public AppointmentGroupImpl withStyleClass(String value) { setStyleClass(value); return this; }
-	}
-	
-	
-	// ==================================================================================================================
-	// SUPPORT
-
-	/*
-	 * 
-	 */
-	static public String quickFormatCalendar(Calendar value)
-	{
-		if (value == null) return "";
-		SimpleDateFormat lSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-		return lSimpleDateFormat.format(value.getTime());
-	}
-	static public String quickFormatCalendar(List<Calendar> value)
-	{
-		if (value == null) return "null";
-		String s = value.size() + "x [";
-		for (Calendar lCalendar : value)
-		{
-			if (s.endsWith("[") == false) s += ",";
-			s += quickFormatCalendar(lCalendar);
-		}
-		s += "]";
-		return s;
 	}
 }
