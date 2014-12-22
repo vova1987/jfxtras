@@ -106,41 +106,42 @@ implements AgendaSkin
 		});
 		setupAppointments();
 		
-//		// react to changes in the appointments 
-//		getSkinnable().selectedAppointments().addListener( (javafx.collections.ListChangeListener.Change<? extends Appointment> change) -> {
-//			setOrRemoveSelected();
-//		});
-//		setOrRemoveSelected();
+		// react to changes in the appointments 
+		getSkinnable().selectedAppointments().addListener( (javafx.collections.ListChangeListener.Change<? extends Appointment> change) -> {
+			setOrRemoveSelected();
+		});
+		setOrRemoveSelected();
 	}
 	AllAppointments appointments = null;
 	
-//	/**
-//	 * set or remove the Selected class from the appointments
-//	 */
-//	private void setOrRemoveSelected()
-//	{
-//		// update the styleclass
-//		for (DayBodyPane lDayPane : weekPane.dayPanes)
-//		{
-//			for (AbstractAppointmentPane lAppointmentPane : lDayPane.allAbstractAppointmentPanes())
-//			{
-//				// remove 
-//				if ( lAppointmentPane.getStyleClass().contains("Selected") == true
-//				  && getSkinnable().selectedAppointments().contains(lAppointmentPane.appointment) == false
-//				   )
-//				{
-//					lAppointmentPane.getStyleClass().remove("Selected");
-//				}
-//				// add
-//				if ( lAppointmentPane.getStyleClass().contains("Selected") == false
-//				  && getSkinnable().selectedAppointments().contains(lAppointmentPane.appointment) == true
-//				   )
-//				{
-//					lAppointmentPane.getStyleClass().add("Selected");
-//				}
-//			}
-//		}		
-//	}
+	/**
+	 * set or remove the Selected class from the appointments
+	 */
+	// TBEERNOT: can we move this to a class shared by week and day skin?
+	private void setOrRemoveSelected()
+	{
+		// update the styleclass
+		for (DayBodyPane lDayPane : weekBodyPane.dayBodyPanes)
+		{
+			for (AppointmentAbstractPane lAppointmentPane : lDayPane.trackedAppointmentBodyPanes)
+			{
+				// remove 
+				if ( lAppointmentPane.getStyleClass().contains("Selected") == true
+				  && getSkinnable().selectedAppointments().contains(lAppointmentPane.appointment) == false
+				   )
+				{
+					lAppointmentPane.getStyleClass().remove("Selected");
+				}
+				// add
+				if ( lAppointmentPane.getStyleClass().contains("Selected") == false
+				  && getSkinnable().selectedAppointments().contains(lAppointmentPane.appointment) == true
+				   )
+				{
+					lAppointmentPane.getStyleClass().add("Selected");
+				}
+			}
+		}		
+	}
 	
 	/**
 	 * Assign a calendar to each day, so it knows what it must draw.
@@ -225,7 +226,7 @@ implements AgendaSkin
 		refreshLocale();
 		assignDateToDayAndHeaderPanes();
 		setupAppointments();
-//		setOrRemoveSelected();
+		setOrRemoveSelected();
 		nowUpdateRunnable.run(); 
 	}
 	

@@ -213,7 +213,7 @@ class DayBodyPane extends Pane
 		
 		relayout();
 	}
-	final private List<AppointmentAbstractTrackedPane> trackedAppointmentBodyPanes = new ArrayList<>();
+	final List<AppointmentAbstractTrackedPane> trackedAppointmentBodyPanes = new ArrayList<>();
 	
 	
 	/**

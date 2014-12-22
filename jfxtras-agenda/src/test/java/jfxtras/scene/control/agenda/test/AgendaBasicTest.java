@@ -552,7 +552,40 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 		Assert.assertTrue(agenda.appointments().get(0).isWholeDay());
 		//TestUtil.sleep(3000);
 	}
-	
+
+	/**
+	 * 
+	 */
+	@Test
+	public void selectSingle()
+	{
+		// given
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T10:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+		});
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals(0, agenda.selectedAppointments().size() );
+		
+		// when
+		click("#AppointmentRegularBodyPane1");
+		
+		// then
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals(1, agenda.selectedAppointments().size() );
+		
+		// when
+		click("#hourLine15");
+		
+		// then
+		Assert.assertEquals(1, agenda.appointments().size() );
+		Assert.assertEquals(0, agenda.selectedAppointments().size() );
+		TestUtil.sleep(3000);
+	}
+
 	// TODO: create new wholeday appointment by clicking in the header
 	// TODO: drag from header to day and vice versa
 	// TODO: select
