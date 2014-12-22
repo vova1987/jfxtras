@@ -128,13 +128,17 @@ abstract public class AppointmentAbstractPane extends Pane {
 			if (mouseActuallyHasDragged == false) {
 				
 				// if not shift pressed, clear the selection
-				if (mouseEvent.isShiftDown() == false) {
+				if (mouseEvent.isShiftDown() == false && mouseEvent.isControlDown() == false) {
 					layoutHelp.skinnable.selectedAppointments().clear();
 				}
 				
 				// add to selection if not already added
 				if (layoutHelp.skinnable.selectedAppointments().contains(appointment) == false) {
 					layoutHelp.skinnable.selectedAppointments().add(appointment);
+				}
+				// pressing control allows to toggle
+				else if (mouseEvent.isControlDown()) {
+					layoutHelp.skinnable.selectedAppointments().remove(appointment);
 				}
 				return;
 			}

@@ -36,6 +36,7 @@ import java.util.TreeMap;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
@@ -583,7 +584,128 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 		// then
 		Assert.assertEquals(1, agenda.appointments().size() );
 		Assert.assertEquals(0, agenda.selectedAppointments().size() );
-		TestUtil.sleep(3000);
+		//TestUtil.sleep(3000);
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void selectShift()
+	{
+		// given
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T07:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T08:00:00.000"))
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T10:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+	        );
+		});
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(0, agenda.selectedAppointments().size() );
+		
+		// when
+		click("#AppointmentRegularBodyPane1"); // select first
+		
+		// then
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(1, agenda.selectedAppointments().size() );
+		
+		// when
+		click("#AppointmentRegularBodyPane2"); // select second
+		
+		// then
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(1, agenda.selectedAppointments().size() );
+		
+		// when
+		press(KeyCode.SHIFT);
+		click("#AppointmentRegularBodyPane1"); // select both
+		release(KeyCode.SHIFT);
+		
+		// then
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(2, agenda.selectedAppointments().size() );
+		
+		// when
+		press(KeyCode.SHIFT);
+		click("#AppointmentRegularBodyPane1"); // select again (no change)
+		release(KeyCode.SHIFT);
+		
+		// then
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(2, agenda.selectedAppointments().size() );
+		
+		// when
+		click("#hourLine15");
+		
+		// then
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(0, agenda.selectedAppointments().size() );
+		//TestUtil.sleep(3000);
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void selectControl()
+	{
+		// given
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T07:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T08:00:00.000"))
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+            );
+			agenda.appointments().add( new Agenda.AppointmentImpl()
+	            .withStartTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T10:00:00.000"))
+	            .withEndTime(TestUtil.quickParseCalendarFromDateTime("2014-01-01T12:00:00.000"))
+	            .withAppointmentGroup(appointmentGroupMap.get("group01"))
+	        );
+		});
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(0, agenda.selectedAppointments().size() );
+		
+		// when
+		click("#AppointmentRegularBodyPane1"); // select first
+		
+		// then
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(1, agenda.selectedAppointments().size() );
+		
+		// when
+		press(KeyCode.CONTROL);
+		click("#AppointmentRegularBodyPane2"); // select second
+		release(KeyCode.CONTROL);
+		
+		// then
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(2, agenda.selectedAppointments().size() );
+		
+		// when
+		press(KeyCode.CONTROL);
+		click("#AppointmentRegularBodyPane2"); // select again (deselects)
+		release(KeyCode.CONTROL);
+		
+		// then
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(1, agenda.selectedAppointments().size() );
+		
+		// when
+		press(KeyCode.CONTROL);
+		click("#AppointmentRegularBodyPane1"); // select again (deselects)
+		release(KeyCode.CONTROL);
+		
+		// then
+		Assert.assertEquals(2, agenda.appointments().size() );
+		Assert.assertEquals(0, agenda.selectedAppointments().size() );
+		//TestUtil.sleep(3000);
 	}
 
 	// TODO: create new wholeday appointment by clicking in the header

@@ -126,18 +126,19 @@ implements AgendaSkin
 			for (AppointmentAbstractPane lAppointmentPane : lDayPane.trackedAppointmentBodyPanes)
 			{
 				// remove 
-				if ( lAppointmentPane.getStyleClass().contains("Selected") == true
-				  && getSkinnable().selectedAppointments().contains(lAppointmentPane.appointment) == false
+				if ( lAppointmentPane.getStyleClass().contains("Selected") == true // visually selected
+				  && getSkinnable().selectedAppointments().contains(lAppointmentPane.appointment) == false // but no longer in the selected collection
 				   )
 				{
 					lAppointmentPane.getStyleClass().remove("Selected");
 				}
+				
 				// add
-				if ( lAppointmentPane.getStyleClass().contains("Selected") == false
-				  && getSkinnable().selectedAppointments().contains(lAppointmentPane.appointment) == true
+				if ( lAppointmentPane.getStyleClass().contains("Selected") == false // visually not selected
+				  && getSkinnable().selectedAppointments().contains(lAppointmentPane.appointment) == true // but still in the selected collection
 				   )
 				{
-					lAppointmentPane.getStyleClass().add("Selected");
+					lAppointmentPane.getStyleClass().add("Selected"); 
 				}
 			}
 		}		
