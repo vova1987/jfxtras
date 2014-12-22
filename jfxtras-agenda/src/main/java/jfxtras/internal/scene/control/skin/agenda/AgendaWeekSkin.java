@@ -90,10 +90,10 @@ implements AgendaSkin
 
 		// react to changes in the locale 
 		getSkinnable().localeProperty().addListener( (observable) -> {
-			refreshLocale();
+			refresh();
 		});
 		refreshLocale();
-		
+		 
 		// react to changes in the displayed calendar 
 		getSkinnable().displayedDateTime().addListener( (observable) -> {
 			assignDateToDayAndHeaderPanes();
@@ -190,7 +190,7 @@ implements AgendaSkin
 		layoutHelp.dayOfWeekDateTimeFormatter = new DateTimeFormatterBuilder().appendPattern("E").toFormatter(getSkinnable().getLocale());
 		layoutHelp.dateFormat = (SimpleDateFormat)SimpleDateFormat.getDateInstance(SimpleDateFormat.SHORT, getSkinnable().getLocale());
 		layoutHelp.dateDateTimeFormatter= new DateTimeFormatterBuilder().appendLocalized(FormatStyle.SHORT, null).toFormatter(getSkinnable().getLocale());
-		
+
 		// TBEERNOT: force redraw the dayHeaders upon local change 
 		for (DayBodyPane lDayBodyPane : weekBodyPane.dayBodyPanes)
 		{
@@ -224,8 +224,8 @@ implements AgendaSkin
 	 * 
 	 */
 	public void refresh() {
-		refreshLocale();
 		assignDateToDayAndHeaderPanes();
+		refreshLocale();
 		setupAppointments();
 		setOrRemoveSelected();
 		nowUpdateRunnable.run(); 

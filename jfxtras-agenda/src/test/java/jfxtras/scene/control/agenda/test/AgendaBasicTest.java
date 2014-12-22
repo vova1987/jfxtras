@@ -612,42 +612,28 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 		
 		// when
 		click("#AppointmentRegularBodyPane1"); // select first
-		
-		// then
-		Assert.assertEquals(2, agenda.appointments().size() );
 		Assert.assertEquals(1, agenda.selectedAppointments().size() );
 		
 		// when
 		click("#AppointmentRegularBodyPane2"); // select second
-		
-		// then
-		Assert.assertEquals(2, agenda.appointments().size() );
 		Assert.assertEquals(1, agenda.selectedAppointments().size() );
 		
 		// when
 		press(KeyCode.SHIFT);
 		click("#AppointmentRegularBodyPane1"); // select both
 		release(KeyCode.SHIFT);
-		
-		// then
-		Assert.assertEquals(2, agenda.appointments().size() );
 		Assert.assertEquals(2, agenda.selectedAppointments().size() );
 		
 		// when
 		press(KeyCode.SHIFT);
 		click("#AppointmentRegularBodyPane1"); // select again (no change)
 		release(KeyCode.SHIFT);
-		
-		// then
-		Assert.assertEquals(2, agenda.appointments().size() );
 		Assert.assertEquals(2, agenda.selectedAppointments().size() );
 		
 		// when
 		click("#hourLine15");
-		
-		// then
-		Assert.assertEquals(2, agenda.appointments().size() );
 		Assert.assertEquals(0, agenda.selectedAppointments().size() );
+		
 		//TestUtil.sleep(3000);
 	}
 
@@ -675,36 +661,24 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 		
 		// when
 		click("#AppointmentRegularBodyPane1"); // select first
-		
-		// then
-		Assert.assertEquals(2, agenda.appointments().size() );
 		Assert.assertEquals(1, agenda.selectedAppointments().size() );
 		
 		// when
 		press(KeyCode.CONTROL);
 		click("#AppointmentRegularBodyPane2"); // select second
 		release(KeyCode.CONTROL);
-		
-		// then
-		Assert.assertEquals(2, agenda.appointments().size() );
 		Assert.assertEquals(2, agenda.selectedAppointments().size() );
 		
 		// when
 		press(KeyCode.CONTROL);
 		click("#AppointmentRegularBodyPane2"); // select again (deselects)
 		release(KeyCode.CONTROL);
-		
-		// then
-		Assert.assertEquals(2, agenda.appointments().size() );
 		Assert.assertEquals(1, agenda.selectedAppointments().size() );
 		
 		// when
 		press(KeyCode.CONTROL);
 		click("#AppointmentRegularBodyPane1"); // select again (deselects)
 		release(KeyCode.CONTROL);
-		
-		// then
-		Assert.assertEquals(2, agenda.appointments().size() );
 		Assert.assertEquals(0, agenda.selectedAppointments().size() );
 		//TestUtil.sleep(3000);
 	}
@@ -740,27 +714,36 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 		// TestUtil.sleep(3000);
 	}
 
-//	/**
-//	 * 
-//	 */
-//	@Test
-//	public void firstDayOfWeekDefault()
-//	{
-//      assert sunday	
-//		TestUtil.sleep(3000);
-//	}
-//	
-//	/**
-//	 * 
-//	 */
-//	@Test
-//	public void firstDayOfWeekDE()
-//	{
-//		// given
-//		TestUtil.runThenWaitForPaintPulse( () -> {
-//			agenda.setLocale(Locale.GERMANY);
-//		});
-//      assert Monday	
-//		TestUtil.sleep(3000);
-//	}
+	/**
+	 * 
+	 */
+	@Test
+	public void firstDayOfWeekDefault()
+	{
+		// assert Sunday is the first day of the week
+		assertFind("#DayHeader2013-12-29");
+		assertFind("#DayHeader2014-01-04");
+		Assert.assertTrue(find("#DayHeader2013-12-29").getStyleClass().contains("weekend"));
+		Assert.assertTrue(find("#DayHeader2014-01-04").getStyleClass().contains("weekend"));
+		//TestUtil.sleep(3000);
+	}
+	
+	/**
+	 * 
+	 */
+	@Test
+	public void firstDayOfWeekGermany()
+	{
+		// given
+		TestUtil.runThenWaitForPaintPulse( () -> {
+			agenda.setLocale(Locale.GERMANY);
+		});
+		
+		// assert Monday is the first day of the week
+		assertFind("#DayHeader2013-12-30");
+		assertFind("#DayHeader2014-01-05");
+		Assert.assertTrue(find("#DayHeader2014-01-04").getStyleClass().contains("weekend"));
+		Assert.assertTrue(find("#DayHeader2014-01-05").getStyleClass().contains("weekend"));
+		//TestUtil.sleep(3000);
+	}
 }
