@@ -89,10 +89,6 @@ abstract public class AppointmentAbstractPane extends Pane {
 			// remember
 			startX = mouseEvent.getScreenX();
 			startY = mouseEvent.getScreenY();
-			
-			// TBEERNOT: determine start date and time of drag:
-			// - date = ask extender via abstract method or via constructor
-			// - time = calculate by offset from start of pane, ask extender
 		});
 		
 		// visualize dragging

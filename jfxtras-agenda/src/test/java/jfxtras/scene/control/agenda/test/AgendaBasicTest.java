@@ -29,7 +29,6 @@
 
 package jfxtras.scene.control.agenda.test;
 
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Locale;
 import java.util.Map;
@@ -235,7 +234,7 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 //	 *  
 //	 */
 //	@Test
-//	public void removeAppointmentByDeleteKey()
+//	public void deleteAppointmentByDeleteKey()
 //	{
 //		TestUtil.runThenWaitForPaintPulse( () -> {
 //			agenda.appointments().add( new Agenda.AppointmentImpl2()

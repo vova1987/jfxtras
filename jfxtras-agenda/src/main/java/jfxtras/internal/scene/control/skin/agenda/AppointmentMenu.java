@@ -21,7 +21,6 @@ import jfxtras.scene.control.agenda.Agenda.Appointment;
 import jfxtras.scene.control.agenda.Agenda.AppointmentGroup;
 import jfxtras.util.NodeUtil;
 
-// TBEERNOT: convert to Java 8 time 
 public class AppointmentMenu extends Rectangle {
 
 	/**

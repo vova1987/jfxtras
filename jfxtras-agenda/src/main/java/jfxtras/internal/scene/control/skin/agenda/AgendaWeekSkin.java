@@ -62,6 +62,7 @@ import jfxtras.util.NodeUtil;
  * @author Tom Eugelink
  */
 // TBEERNOT: TODO: whole day Task (TaskHeaderPane)
+// TBEERNOT: multiple day spanning task
 public class AgendaWeekSkin extends SkinBase<Agenda>
 implements AgendaSkin
 {
@@ -216,7 +217,6 @@ implements AgendaSkin
 		for (DayBodyPane lDay : weekBodyPane.dayBodyPanes) {
 			lDay.setupAppointments();
 		}
-		calculateSizes(); // TBEERNOT: when dropping a wholeday appointment into another day header, the header height is not increased unless this call is present. Figure out why.
 		nowUpdateRunnable.run(); // set the history
 	}
 
