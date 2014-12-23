@@ -510,9 +510,9 @@ public class Agenda extends Control
 		{
 			return super.toString()
 				 + ", "
-				 + this.getStartTime()
+				 + this.getStartDateTime()
 				 + " - "
-				 + this.getEndTime()
+				 + this.getEndDateTime()
 				 ;
 		}
 	}

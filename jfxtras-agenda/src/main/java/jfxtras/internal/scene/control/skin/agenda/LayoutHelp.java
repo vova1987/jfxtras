@@ -23,13 +23,13 @@ import jfxtras.scene.control.agenda.Agenda;
  * Its methods are utility methods, which normally would be statics in a util class. 
  */
 public class LayoutHelp {
-	public LayoutHelp(Agenda skinnable, AgendaWeekSkin agendaWeekSkin) {
+	public LayoutHelp(Agenda skinnable, AgendaSkin skin) {
 		this.skinnable = skinnable;
-		this.skin = agendaWeekSkin;
+		this.skin = skin;
 		dragPane = new DragPane(this);
 	}
 	final Agenda skinnable;
-	final AgendaWeekSkin skin;
+	final AgendaSkin skin;
 	final DragPane dragPane;
 	
 	final IntegerProperty highestNumberOfWholedayAppointmentsProperty = new SimpleIntegerProperty(0);

@@ -64,7 +64,8 @@ public class AgendaTrial1 extends Application {
 
         // add a node
 		final Agenda lAgenda = new Agenda();		
-    	lAgenda.setLocale(new java.util.Locale("de")); // weeks starts on monday
+//    	lAgenda.setLocale(new java.util.Locale("de")); // weeks starts on monday
+//		lAgenda.setSkin(new jfxtras.internal.scene.control.skin.agenda.AgendaDaySkin(lAgenda));
 		
 		// setup appointment groups
 		final Map<String, Agenda.AppointmentGroup> lAppointmentGroupMap = new TreeMap<String, Agenda.AppointmentGroup>();
@@ -99,9 +100,6 @@ public class AgendaTrial1 extends Application {
 			lAgenda.appointmentGroups().add(lAppointmentGroup);
 		}
 			
-		
-		// create the appoinment groups
-		
 		// accept new appointments
 		lAgenda.newAppointmentCallbackProperty().set(new Callback<Agenda.DateTimeRange, Agenda.Appointment>()
 		{

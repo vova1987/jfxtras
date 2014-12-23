@@ -40,14 +40,14 @@ import jfxtras.scene.control.agenda.Agenda;
 /**
  * @author Tom Eugelink
  */
-public class AgendaWeekSkin extends AgendaSkinTimeScale24HourAbstract {
+public class AgendaDaySkin extends AgendaSkinTimeScale24HourAbstract {
 	// ==================================================================================================================
 	// CONSTRUCTOR
 	
 	/**
 	 * 
 	 */
-	public AgendaWeekSkin(Agenda control) {
+	public AgendaDaySkin(Agenda control) {
 		super(control);
 	}
 	
@@ -59,11 +59,8 @@ public class AgendaWeekSkin extends AgendaSkinTimeScale24HourAbstract {
 		// the result 
 		List<LocalDate> lLocalDates = new ArrayList<>();
 		
-		// 7 days stating at the first day of week
-		LocalDate lStartLocalDate = getFirstDayOfWeekLocalDate();
-		for (int i = 0; i < 7; i++) {
-			lLocalDates.add(lStartLocalDate.plusDays(i));
-		}
+		// exactly the display date
+		lLocalDates.add(control.getDisplayedDateTime().toLocalDate());
 		
 		// done
 		return lLocalDates;

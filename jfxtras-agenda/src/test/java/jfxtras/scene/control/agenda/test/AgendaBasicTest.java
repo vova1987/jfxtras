@@ -746,4 +746,7 @@ public class AgendaBasicTest extends JFXtrasGuiTest {
 		Assert.assertTrue(find("#DayHeader2014-01-05").getStyleClass().contains("weekend"));
 		//TestUtil.sleep(3000);
 	}
+	
+	// TBEERNOT: NowVisualizer
+	// TBEERNOT: AgendaDaySkin
 }

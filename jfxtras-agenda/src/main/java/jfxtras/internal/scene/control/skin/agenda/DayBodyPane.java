@@ -55,6 +55,12 @@ class DayBodyPane extends Pane
 		});
 		
 		setupMouseDrag();
+
+		// for testing
+		localDateObjectProperty.addListener( (observable) -> {
+			setId("DayBody" + localDateObjectProperty.get());
+		});
+		setId("DayBody" + localDateObjectProperty.get());
 	}
 	
 	/**
