@@ -27,10 +27,32 @@ public class LayoutHelp {
 		this.skinnable = skinnable;
 		this.skin = skin;
 		dragPane = new DragPane(this);
+		
+		// header
+		titleDateTimeHeightProperty.bind( textHeightProperty.multiply(1.5) ); 
+		appointmentHeaderPaneHeightProperty.bind( textHeightProperty.add(5) ); // not sure why the 5 is needed
+		headerHeightProperty.bind( highestNumberOfWholedayAppointmentsProperty.multiply( appointmentHeaderPaneHeightProperty ).add( titleDateTimeHeightProperty ) );
+
+		// day columns
+		dayFirstColumnXProperty.bind( timeWidthProperty );
+		dayContentWidthProperty.bind( dayWidthProperty.subtract(10) ); // the 10 is a margin at the right so that there is always room to start a new appointment
+		
+		// hour height
+		dayHeightProperty.bind(hourHeighProperty.multiply(24));
+		durationInMSPerPixelProperty.bind( msPerDayProperty.divide(dayHeightProperty) );
+		
+		// generic
+		textHeightProperty.set( new Text("X").getBoundsInParent().getHeight() );
+		
+		// time column
+		timeWidthProperty.bind( timeColumnWhitespaceProperty.add( new Text("88:88").getBoundsInParent().getWidth() )  );
+
 	}
 	final Agenda skinnable;
 	final AgendaSkin skin;
 	final DragPane dragPane;
+	
+	final DoubleProperty msPerDayProperty = new SimpleDoubleProperty(24 * 60 * 60 * 1000);
 	
 	final IntegerProperty highestNumberOfWholedayAppointmentsProperty = new SimpleIntegerProperty(0);
 	
@@ -55,12 +77,9 @@ public class LayoutHelp {
 	DateTimeFormatter dateDateTimeFormatter = new DateTimeFormatterBuilder().appendLocalized(FormatStyle.SHORT, null).toFormatter(Locale.getDefault());
 	final static SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 	DateTimeFormatter timeDateTimeFormatter = new DateTimeFormatterBuilder().appendPattern("HH:mm").toFormatter(Locale.getDefault());
-	
+
 	/**
 	 * 
-	 * @param text
-	 * @param width
-	 * @param height
 	 */
 	public void clip(Text text, ObservableValue<? extends Number> width, ObservableValue<? extends Number> height) {
 		Rectangle lClip = new Rectangle(0,0,0,0);
@@ -71,7 +90,6 @@ public class LayoutHelp {
 
 	/**
 	 * 
-	 * @param node
 	 */
 	public void setupMouseOverAsBusy(final Node node) {
 		// play with the mouse pointer to show something can be done here

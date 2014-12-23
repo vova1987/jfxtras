@@ -3,6 +3,7 @@ package jfxtras.internal.scene.control.skin.agenda;
 import java.time.LocalDateTime;
 
 import javafx.scene.Cursor;
+import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import jfxtras.scene.control.agenda.Agenda.Appointment;
@@ -41,26 +42,29 @@ public class DurationDragger extends Rectangle
 	private void setupMouseDrag() {
 		// start resize
 		setOnMousePressed( (mouseEvent) -> {
+
+			// we handle this event
+			mouseEvent.consume();
 			
 			// place a rectangle at exactly the same location as the appointmentPane
-			DurationDragger.this.setCursor(Cursor.V_RESIZE);
+			setCursor(Cursor.V_RESIZE);
 			resizeRectangle = new Rectangle(appointmentPane.getLayoutX(), appointmentPane.getLayoutY(), appointmentPane.getWidth(), appointmentPane.getHeight()); // the values are already snapped
 			resizeRectangle.getStyleClass().add("GhostRectangle");
-			((DayBodyPane)appointmentPane.getParent()).getChildren().add(resizeRectangle);
+			((Pane)appointmentPane.getParent()).getChildren().add(resizeRectangle);
 			
 			// place a text node at the bottom of the resize rectangle
 			endTimeText = new Text(layoutHelp.timeDateTimeFormatter.format(appointment.getEndDateTime()));
 			endTimeText.layoutXProperty().set(appointmentPane.getLayoutX()); 
 			endTimeText.layoutYProperty().bind(resizeRectangle.heightProperty().add(appointmentPane.getLayoutY())); 
 			endTimeText.getStyleClass().add("GhostRectangleText");
-			((DayBodyPane)appointmentPane.getParent()).getChildren().add(endTimeText);
-
-			// this event should not be processed by the appointment area
-			mouseEvent.consume();
+			((Pane)appointmentPane.getParent()).getChildren().add(endTimeText);
 		});
 		
 		// visualize resize
 		setOnMouseDragged( (mouseEvent) -> {
+
+			// we handle this event
+			mouseEvent.consume();
 			
 			//  calculate the number of pixels from on-screen nodeY (layoutY) to on-screen mouseY					
 			double lNodeScreenY = NodeUtil.screenY(appointmentPane);
@@ -74,24 +78,21 @@ public class DurationDragger extends Rectangle
 			// show the current time in the label
 			LocalDateTime endLocalDateTime = calculateEndDateTime();
 			endTimeText.setText(layoutHelp.timeDateTimeFormatter.format(endLocalDateTime));
-
-			// no one else
-			mouseEvent.consume();
 		});
 		
 		// end resize
 		setOnMouseReleased( (mouseEvent) -> {			
-			LocalDateTime endLocalDateTime = calculateEndDateTime();
+			LocalDateTime endLocalDateTime = calculateEndDateTime(); // must be done before the UI is reset and the event is consumed
 							
-			// reset ui
-			DurationDragger.this.setCursor(Cursor.HAND);
-			((DayBodyPane)appointmentPane.getParent()).getChildren().remove(resizeRectangle);
-			resizeRectangle = null;					
-			((DayBodyPane)appointmentPane.getParent()).getChildren().remove(endTimeText);
-			endTimeText = null;
-			
-			// no one else
+			// we handle this event
 			mouseEvent.consume();
+			
+			// reset ui
+			setCursor(Cursor.HAND);
+			((Pane)appointmentPane.getParent()).getChildren().remove(resizeRectangle);
+			resizeRectangle = null;					
+			((Pane)appointmentPane.getParent()).getChildren().remove(endTimeText);
+			endTimeText = null;
 			
 			// set the new enddate
 			appointmentPane.appointment.setEndDateTime(endLocalDateTime);
@@ -100,8 +101,8 @@ public class DurationDragger extends Rectangle
 			layoutHelp.skin.setupAppointments();
 		});
 	}
-	private Rectangle resizeRectangle;
-	private Text endTimeText;
+	private Rectangle resizeRectangle = null;
+	private Text endTimeText = null;
 	
 	private LocalDateTime calculateEndDateTime() {
 		

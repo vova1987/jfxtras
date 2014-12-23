@@ -6,6 +6,7 @@ import java.time.Period;
 
 import javafx.scene.Cursor;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
@@ -14,6 +15,7 @@ import jfxtras.scene.control.agenda.Agenda.Appointment;
 import jfxtras.util.NodeUtil;
 
 abstract public class AppointmentAbstractPane extends Pane {
+
 	/**
 	 * @param calendar
 	 * @param appointment
@@ -37,7 +39,15 @@ abstract public class AppointmentAbstractPane extends Pane {
 			Tooltip.install(this, new Tooltip(appointment.getSummary()));
 		}
 		
-		setupDragging();
+		// dragging
+		if (draggable == Draggable.YES) {
+			setupDragging();
+		}
+		
+		// react to changes in the selected appointments
+		layoutHelp.skinnable.selectedAppointments().addListener( (javafx.collections.ListChangeListener.Change<? extends Appointment> change) -> {
+			setOrRemoveSelected();
+		});
 	}
 	final protected Agenda.Appointment appointment; 
 	final protected LayoutHelp layoutHelp;
@@ -45,6 +55,26 @@ abstract public class AppointmentAbstractPane extends Pane {
 	enum Draggable { YES, NO }
 	final protected HistoricalVisualizer historyVisualizer;
 
+	/**
+	 * 
+	 */
+	private void setOrRemoveSelected() {
+		// remove class if not selected
+		if ( getStyleClass().contains(SELECTED) == true // visually selected
+		  && layoutHelp.skinnable.selectedAppointments().contains(appointment) == false // but no longer in the selected collection
+		) {
+			getStyleClass().remove(SELECTED);
+		}
+		
+		// add class if selected
+		if ( getStyleClass().contains(SELECTED) == false // visually not selected
+		  && layoutHelp.skinnable.selectedAppointments().contains(appointment) == true // but still in the selected collection
+		) {
+			getStyleClass().add(SELECTED); 
+		}
+	}
+	private static final String SELECTED = "Selected";
+	
 	/**
 	 * 
 	 * @param now
@@ -57,181 +87,172 @@ abstract public class AppointmentAbstractPane extends Pane {
 	 * 
 	 */
 	private void setupDragging() {
-		// ------------
-		// dragging
 		
 		// start drag
-		setOnMousePressed( (mouseEvent) -> {					
-			// no one else
-			mouseEvent.consume();
+		setOnMousePressed( (mouseEvent) -> {
+			// is this a drag start, action or a select?
 			if (mouseEvent.isPrimaryButtonDown() == false) {
 				return;
 			}
+
+			// we handle this event
+			mouseEvent.consume();
+
+			// if this an action
 			if (mouseEvent.getClickCount() > 1) {
-				action();
-				return;
-			}
-			if (draggable != Draggable.YES) {
+				handleAction();
 				return;
 			}
 
-			// no drag yet
-			mouseActuallyHasDragged = mouseEvent.isPrimaryButtonDown() ? false : true; // if not primary mouse, then just assume drag from the start 
-
-			// place the rectangle
-			setCursor(Cursor.MOVE);
-			double lX = NodeUtil.screenX(this) - NodeUtil.screenX(layoutHelp.dragPane);
-			double lY = NodeUtil.screenY(this) - NodeUtil.screenY(layoutHelp.dragPane);
-			dragRectangle = new Rectangle(NodeUtil.snapXY(lX), NodeUtil.snapXY(lY), NodeUtil.snapWH(lX, getWidth()), NodeUtil.snapWH(lY, (appointment.isWholeDay() ? layoutHelp.titleDateTimeHeightProperty.get() : getHeight())) );
-			dragRectangle.getStyleClass().add("GhostRectangle");
-			layoutHelp.dragPane.getChildren().add(dragRectangle);
-			
 			// remember
 			startX = mouseEvent.getScreenX();
 			startY = mouseEvent.getScreenY();
+			mouseActuallyHasDragged = false;
 		});
 		
 		// visualize dragging
-		setOnMouseDragged((mouseEvent) -> {
-			// no one else
+		setOnMouseDragged( (mouseEvent) -> {
+			// we handle this event
 			mouseEvent.consume();
-			if (mouseEvent.isPrimaryButtonDown() == false) return;
-
-			// no dragged
-			mouseActuallyHasDragged = true;
-			if (dragRectangle == null) return;
 			
-			double lDeltaX = mouseEvent.getScreenX() - startX;
-			double lDeltaY = mouseEvent.getScreenY() - startY;
-			double lX = NodeUtil.screenX(this) - NodeUtil.screenX(layoutHelp.dragPane) + lDeltaX;
-			double lY = NodeUtil.screenY(this) - NodeUtil.screenY(layoutHelp.dragPane) + lDeltaY;
+			// show the drag rectangle when we actually drag
+			if (dragRectangle == null) {
+				setCursor(Cursor.MOVE);
+				dragRectangle = new Rectangle(0, 0, NodeUtil.snapWH(0, getWidth()), NodeUtil.snapWH(0, (appointment.isWholeDay() ? layoutHelp.titleDateTimeHeightProperty.get() : getHeight())) );
+				dragRectangle.getStyleClass().add("GhostRectangle");
+				layoutHelp.dragPane.getChildren().add(dragRectangle);
+				// TBEERNOT: show time label in dragged rectangle?
+			}
+			
+			// move the drag rectangle
+			double lX = (NodeUtil.screenX(this) - NodeUtil.screenX(layoutHelp.dragPane)) + (mouseEvent.getScreenX() - startX); // top-left of pane + offset of dragrectangle
+			double lY = (NodeUtil.screenY(this) - NodeUtil.screenY(layoutHelp.dragPane)) + (mouseEvent.getScreenY() - startY); // top-left of pane + offset of dragrectangle
 			dragRectangle.setX(NodeUtil.snapXY(lX));
 			dragRectangle.setY(NodeUtil.snapXY(lY));
-			
-			// no one else
-			mouseEvent.consume();
+			mouseActuallyHasDragged = true;
 		});
 		
 		// end drag
 		setOnMouseReleased((mouseEvent) -> {
-			// no one else
+			// we handle this event
 			mouseEvent.consume();
 
 			// reset ui
-			boolean lDragRectangleWasVisible = (dragRectangle != null);
 			setCursor(Cursor.HAND);
-			layoutHelp.dragPane.getChildren().remove(dragRectangle);
-			dragRectangle = null;					
+			if (dragRectangle != null) {
+				layoutHelp.dragPane.getChildren().remove(dragRectangle);
+				dragRectangle = null;
+			}
 			
-			// -----
-			// select
-			
-			// if have not dragged (even if the drag rectangle was shown), then we're selecting
+			// if not dragged, then we're selecting
 			if (mouseActuallyHasDragged == false) {
-				
-				// if not shift pressed, clear the selection
-				if (mouseEvent.isShiftDown() == false && mouseEvent.isControlDown() == false) {
-					layoutHelp.skinnable.selectedAppointments().clear();
-				}
-				
-				// add to selection if not already added
-				if (layoutHelp.skinnable.selectedAppointments().contains(appointment) == false) {
-					layoutHelp.skinnable.selectedAppointments().add(appointment);
-				}
-				// pressing control allows to toggle
-				else if (mouseEvent.isControlDown()) {
-					layoutHelp.skinnable.selectedAppointments().remove(appointment);
-				}
+				handleSelect(mouseEvent);
 				return;
 			}
 			
-			// ------------
-			// dragging
-			
-			if (lDragRectangleWasVisible == false) {
-				return;
-			}
-			
-			// determine startDateTime of the drag
+			// determine start and end DateTime of the drag
 			LocalDateTime dragStartDateTime = layoutHelp.skin.convertClickToDateTime(startX, startY);
-			boolean dragStartInDayBody = dragInDayBody(dragStartDateTime);
-			boolean dragStartInDayHeader = dragInDayHeader(dragStartDateTime);
-			dragStartDateTime = layoutHelp.roundTimeToNearestMinutes(dragStartDateTime, roundToMinutes);
-			
-			// determine endDateTime of the drag
 			LocalDateTime dragEndDateTime = layoutHelp.skin.convertClickToDateTime(mouseEvent.getScreenX(), mouseEvent.getScreenY());
-			if (dragEndDateTime == null) {
-				// dropped somewhere outside, abort
-				return;
+			if (dragEndDateTime != null) { // not dropped somewhere outside
+				handleDrag(dragStartDateTime, dragEndDateTime);					
 			}
-			boolean dragEndInDayBody = dragInDayBody(dragEndDateTime);
-			boolean dragEndInDayHeader = dragInDayHeader(dragEndDateTime);
-			dragEndDateTime = layoutHelp.roundTimeToNearestMinutes(dragEndDateTime, roundToMinutes);
-
-			// TBEERNOT: show time label in dragged rectangle
-			// TBEERNOT: move code out to the DragPane
-			
-			// if dragged from day to day or header to header
-			if ( (dragStartInDayBody && dragEndInDayBody) 
-			  || (dragStartInDayHeader && dragEndInDayHeader)
-			) {				
-				// simply add the duration
-				Duration duration = Duration.between(dragStartDateTime, dragEndDateTime);
-				if (appointment.getStartDateTime() != null) {
-					appointment.setStartDateTime( appointment.getStartDateTime().plus(duration) );
-				}
-				if (appointment.getEndDateTime() != null) {
-					appointment.setEndDateTime( appointment.getEndDateTime().plus(duration) );
-				}
-			}
-			
-			// if dragged from day to header
-			else if ( (dragStartInDayBody && dragEndInDayHeader) ) {
-				
-				appointment.setWholeDay(true);
-				
-				// simply add the duration, but without time
-				Period period = Period.between(dragStartDateTime.toLocalDate(), dragEndDateTime.toLocalDate());
-				if (appointment.getStartDateTime() != null) {
-					appointment.setStartDateTime( appointment.getStartDateTime().plus(period) );
-				}
-				if (appointment.getEndDateTime() != null) {
-					appointment.setEndDateTime( appointment.getEndDateTime().plus(period) );
-				}
-			}
-			
-			// if dragged from day to header
-			else if ( (dragStartInDayHeader && dragEndInDayBody) ) {
-				
-				appointment.setWholeDay(false);
-
-				// if this is a task
-				if (appointment.getStartDateTime() != null && appointment.getEndDateTime() == null) {
-					// set the drop time as the task time
-					appointment.setStartDateTime(dragEndDateTime );
-				}
-				else {
-					// simply add the duration, but without time
-					Period period = Period.between(dragStartDateTime.toLocalDate(), dragEndDateTime.toLocalDate());
-					appointment.setStartDateTime( appointment.getStartDateTime().toLocalDate().plus(period).atStartOfDay() );
-					appointment.setEndDateTime( appointment.getEndDateTime().toLocalDate().plus(period).plusDays(1).atStartOfDay() );
-				}
-			}
-			
-			// redo whole week
-			layoutHelp.skin.setupAppointments();					
 		});
 	}
-	private Rectangle dragRectangle;
+	private Rectangle dragRectangle = null;
 	private double startX = 0;
 	private double startY = 0;
 	private boolean mouseActuallyHasDragged = false;
 	private final int roundToMinutes = 5;
+
+	/**
+	 * 
+	 */
+	private void handleDrag(LocalDateTime dragStartDateTime, LocalDateTime dragEndDateTime) {
+		
+		// drag start
+		boolean dragStartInDayBody = dragInDayBody(dragStartDateTime);
+		boolean dragStartInDayHeader = dragInDayHeader(dragStartDateTime);
+		dragStartDateTime = layoutHelp.roundTimeToNearestMinutes(dragStartDateTime, roundToMinutes);
+		
+		// drag end
+		boolean dragEndInDayBody = dragInDayBody(dragEndDateTime);
+		boolean dragEndInDayHeader = dragInDayHeader(dragEndDateTime);
+		dragEndDateTime = layoutHelp.roundTimeToNearestMinutes(dragEndDateTime, roundToMinutes);
+
+		// if dragged from day to day or header to header
+		if ( (dragStartInDayBody && dragEndInDayBody) 
+		  || (dragStartInDayHeader && dragEndInDayHeader)
+		) {				
+			// simply add the duration
+			Duration duration = Duration.between(dragStartDateTime, dragEndDateTime);
+			if (appointment.getStartDateTime() != null) {
+				appointment.setStartDateTime( appointment.getStartDateTime().plus(duration) );
+			}
+			if (appointment.getEndDateTime() != null) {
+				appointment.setEndDateTime( appointment.getEndDateTime().plus(duration) );
+			}
+		}
+		
+		// if dragged from day to header
+		else if ( (dragStartInDayBody && dragEndInDayHeader) ) {
+			
+			appointment.setWholeDay(true);
+			
+			// simply add the duration, but without time
+			Period period = Period.between(dragStartDateTime.toLocalDate(), dragEndDateTime.toLocalDate());
+			if (appointment.getStartDateTime() != null) {
+				appointment.setStartDateTime( appointment.getStartDateTime().plus(period) );
+			}
+			if (appointment.getEndDateTime() != null) {
+				appointment.setEndDateTime( appointment.getEndDateTime().plus(period) );
+			}
+		}
+		
+		// if dragged from day to header
+		else if ( (dragStartInDayHeader && dragEndInDayBody) ) {
+			
+			appointment.setWholeDay(false);
+
+			// if this is a task
+			if (appointment.getStartDateTime() != null && appointment.getEndDateTime() == null) {
+				// set the drop time as the task time
+				appointment.setStartDateTime(dragEndDateTime );
+			}
+			else {
+				// simply add the duration, but without time
+				Period period = Period.between(dragStartDateTime.toLocalDate(), dragEndDateTime.toLocalDate());
+				appointment.setStartDateTime( appointment.getStartDateTime().toLocalDate().plus(period).atStartOfDay() );
+				appointment.setEndDateTime( appointment.getEndDateTime().toLocalDate().plus(period).plusDays(1).atStartOfDay() );
+			}
+		}
+		
+		// redo whole week
+		layoutHelp.skin.setupAppointments();
+	}
+
+	/**
+	 * 
+	 */
+	private void handleSelect(MouseEvent mouseEvent) {
+		// if not shift pressed, clear the selection
+		if (mouseEvent.isShiftDown() == false && mouseEvent.isControlDown() == false) {
+			layoutHelp.skinnable.selectedAppointments().clear();
+		}
+		
+		// add to selection if not already added
+		if (layoutHelp.skinnable.selectedAppointments().contains(appointment) == false) {
+			layoutHelp.skinnable.selectedAppointments().add(appointment);
+		}
+		// pressing control allows to toggle
+		else if (mouseEvent.isControlDown()) {
+			layoutHelp.skinnable.selectedAppointments().remove(appointment);
+		}
+	}
 	
 	/**
 	 * 
 	 */
-	private void action() {
+	private void handleAction() {
 		// has the client regsitered an action
 		Callback<Appointment, Void> lCallback = layoutHelp.skinnable.getActionCallback();
 		if (lCallback != null) {

@@ -39,8 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
@@ -49,7 +47,6 @@ import javafx.scene.control.SkinBase;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
 import javafx.util.Duration;
 import jfxtras.animation.Timer;
 import jfxtras.internal.scene.control.skin.DateTimeToCalendarHelper;
@@ -62,6 +59,7 @@ import jfxtras.util.NodeUtil;
  */
 // TBEERNOT: TODO: whole day Task (TaskHeaderPane)
 // TBEERNOT: multiple day spanning task
+// TBEERNOT: number of call to determineDisplayedLocalDates, can we cache? 
 abstract public class AgendaSkinTimeScale24HourAbstract extends SkinBase<Agenda>
 implements AgendaSkin
 {
@@ -93,58 +91,22 @@ implements AgendaSkin
 		getSkinnable().localeProperty().addListener( (observable) -> {
 			refresh();
 		});
-		refreshLocale();
 		 
 		// react to changes in the displayed calendar 
 		getSkinnable().displayedDateTime().addListener( (observable) -> {
 			assignDateToDayAndHeaderPanes();
 			setupAppointments();
 		});
-		assignDateToDayAndHeaderPanes();
 		
 		// react to changes in the appointments 
 		getSkinnable().appointments().addListener( (javafx.collections.ListChangeListener.Change<? extends Appointment> change) -> {
 			setupAppointments();
 		});
-		setupAppointments();
 		
-		// react to changes in the appointments 
-		getSkinnable().selectedAppointments().addListener( (javafx.collections.ListChangeListener.Change<? extends Appointment> change) -> {
-			setOrRemoveSelected();
-		});
-		setOrRemoveSelected();
+		// initial setup
+		refresh();
 	}
 	AllAppointments appointments = null;
-	
-	/**
-	 * set or remove the Selected class from the appointments
-	 */
-	// TBEERNOT: can we move this to a class shared by week and day skin?
-	private void setOrRemoveSelected()
-	{
-		// update the styleclass
-		for (DayBodyPane lDayPane : weekBodyPane.dayBodyPanes)
-		{
-			for (AppointmentAbstractPane lAppointmentPane : lDayPane.trackedAppointmentBodyPanes)
-			{
-				// remove 
-				if ( lAppointmentPane.getStyleClass().contains("Selected") == true // visually selected
-				  && getSkinnable().selectedAppointments().contains(lAppointmentPane.appointment) == false // but no longer in the selected collection
-				   )
-				{
-					lAppointmentPane.getStyleClass().remove("Selected");
-				}
-				
-				// add
-				if ( lAppointmentPane.getStyleClass().contains("Selected") == false // visually not selected
-				  && getSkinnable().selectedAppointments().contains(lAppointmentPane.appointment) == true // but still in the selected collection
-				   )
-				{
-					lAppointmentPane.getStyleClass().add("Selected"); 
-				}
-			}
-		}		
-	}
 	
 	/**
 	 * Assign a calendar to each day, so it knows what it must draw.
@@ -191,10 +153,9 @@ implements AgendaSkin
 		layoutHelp.dateFormat = (SimpleDateFormat)SimpleDateFormat.getDateInstance(SimpleDateFormat.SHORT, getSkinnable().getLocale());
 		layoutHelp.dateDateTimeFormatter= new DateTimeFormatterBuilder().appendLocalized(FormatStyle.SHORT, null).toFormatter(getSkinnable().getLocale());
 
-		// TBEERNOT: force redraw the dayHeaders upon local change 
+		// assign weekend of weekday class
 		for (DayBodyPane lDayBodyPane : weekBodyPane.dayBodyPanes)
 		{
-			// set weekend class
 			String lWeekendOrWeekday = isWeekend(lDayBodyPane.localDateObjectProperty.get()) ? "weekend" : "weekday";
 			lDayBodyPane.getStyleClass().removeAll("weekend", "weekday");
 			lDayBodyPane.getStyleClass().add(lWeekendOrWeekday);			
@@ -210,13 +171,13 @@ implements AgendaSkin
 	 * Have all days reconstruct the appointments
 	 */
 	public void setupAppointments() {
-		calculateSizes();
 		for (DayHeaderPane lDay : weekHeaderPane.dayHeaderPanes) {
 			lDay.setupAppointments();
 		}
 		for (DayBodyPane lDay : weekBodyPane.dayBodyPanes) {
 			lDay.setupAppointments();
 		}
+		calculateSizes(); // must be done after setting up the panes
 		nowUpdateRunnable.run(); // set the history
 	}
 
@@ -227,7 +188,6 @@ implements AgendaSkin
 		assignDateToDayAndHeaderPanes();
 		refreshLocale();
 		setupAppointments();
-		setOrRemoveSelected();
 		nowUpdateRunnable.run(); 
 	}
 	
@@ -441,59 +401,37 @@ implements AgendaSkin
 	/**
 	 * check if a certain weekday name is a certain day-of-the-week
 	 */
-	private boolean isWeekend(LocalDate localDate) 
-	{
+	private boolean isWeekend(LocalDate localDate) {
 		return (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) || (localDate.getDayOfWeek() == DayOfWeek.SUNDAY);
 	}
 	
 
 	/**
-	 * 
+	 * These values can not be determined by binding them to other values, because their calculation is too complex
 	 */
 	private void calculateSizes()
 	{
-		// TBEERNOT: todo: move bind into LayoutHelp
-		// TBEERNOT: todo: less set, more binds
-		
-		// generic
-		double lScrollbarSize = new ScrollBar().getWidth();
-		layoutHelp.textHeightProperty.set( new Text("X").getBoundsInParent().getHeight() );
-		
 		// header
-		AllAppointments lAllAppointments = new AllAppointments(getSkinnable().appointments());
-		int maxOfWholeDayAppointments = 0;
-		for (DayBodyPane lDay : weekBodyPane.dayBodyPanes)
+		int lMaxOfWholeDayAppointments = 0;
+		for (DayHeaderPane lDayHeaderPane : weekHeaderPane.dayHeaderPanes)
 		{
-			int numberOfWholeDayAppointments = lAllAppointments.collectWholedayFor(lDay.localDateObjectProperty.get()).size();
-			maxOfWholeDayAppointments = Math.max(maxOfWholeDayAppointments, numberOfWholeDayAppointments);
+			int lNumberOfWholeDayAppointments = lDayHeaderPane.getNumberOfWholeDayAppointments();
+			lMaxOfWholeDayAppointments = Math.max(lMaxOfWholeDayAppointments, lNumberOfWholeDayAppointments);
 		}
-		layoutHelp.highestNumberOfWholedayAppointmentsProperty.set(maxOfWholeDayAppointments);
-		layoutHelp.titleDateTimeHeightProperty.bind( layoutHelp.textHeightProperty.multiply(1.5) ); 
-		layoutHelp.appointmentHeaderPaneHeightProperty.bind( layoutHelp.textHeightProperty.add(5) ); // not sure why the 5 is needed
-		layoutHelp.headerHeightProperty.bind( layoutHelp.highestNumberOfWholedayAppointmentsProperty.multiply(layoutHelp.appointmentHeaderPaneHeightProperty).add(layoutHelp.titleDateTimeHeightProperty) );
+		layoutHelp.highestNumberOfWholedayAppointmentsProperty.set(lMaxOfWholeDayAppointments);
 
-		// time column
-		layoutHelp.timeWidthProperty.set( new Text("88:88").getBoundsInParent().getWidth() + layoutHelp.timeColumnWhitespaceProperty.get() );
-		
 		// day columns
-		layoutHelp.dayFirstColumnXProperty.bind( layoutHelp.timeWidthProperty );
-		if (weekScrollPane.viewportBoundsProperty().get() != null) 
-		{
-			layoutHelp.dayWidthProperty.set( (weekScrollPane.viewportBoundsProperty().get().getWidth() - layoutHelp.timeWidthProperty.get()) / determineDisplayedLocalDates().size() ); // 7 days per week
+		if (weekScrollPane.viewportBoundsProperty().get() != null) {
+			layoutHelp.dayWidthProperty.set( (weekScrollPane.viewportBoundsProperty().get().getWidth() - layoutHelp.timeWidthProperty.get()) / determineDisplayedLocalDates().size() );
 		}
-		layoutHelp.dayContentWidthProperty.bind( layoutHelp.dayWidthProperty.subtract(10) ); // the 10 is a margin at the right so that there is always room to start a new appointment
 		
 		// hour height
-//		layoutHelp.hourHeighProperty.bind( layoutHelp.textHeightProperty.multiply(2).add(10) ); // 10 is padding
-		layoutHelp.hourHeighProperty.set( (layoutHelp.textHeightProperty.get() * 2) + 10 ); // 10 is padding
-		if (weekScrollPane.viewportBoundsProperty().get() != null && (weekScrollPane.viewportBoundsProperty().get().getHeight() - lScrollbarSize) > layoutHelp.hourHeighProperty.get() * 24)
-		{
+		double lScrollbarSize = new ScrollBar().getWidth();
+		layoutHelp.hourHeighProperty.set( layoutHelp.textHeightProperty.get() * 2 + 10 ); // 10 is padding
+		if (weekScrollPane.viewportBoundsProperty().get() != null && (weekScrollPane.viewportBoundsProperty().get().getHeight() - lScrollbarSize) > layoutHelp.hourHeighProperty.get() * 24) {
 			// if there is more room than absolutely required, let the height grow with the available room
 			layoutHelp.hourHeighProperty.set( (weekScrollPane.viewportBoundsProperty().get().getHeight() - lScrollbarSize) / 24 );
 		}
-		layoutHelp.dayHeightProperty.bind(layoutHelp.hourHeighProperty.multiply(24));
-		DoubleProperty msPerDayProperty = new SimpleDoubleProperty(24 * 60 * 60 * 1000);
-		layoutHelp.durationInMSPerPixelProperty.bind( msPerDayProperty.divide(layoutHelp.dayHeightProperty) );
 	}
 	private LayoutHelp layoutHelp = new LayoutHelp(getSkinnable(), this);
 	
@@ -506,16 +444,16 @@ implements AgendaSkin
 		
 		// the click has only value in either the day panes 
 		for (DayBodyPane lDayPane : weekBodyPane.dayBodyPanes) {
-			LocalDateTime localDateTime = lDayPane.convertClickToDateTime(x, y);
-			if (localDateTime != null) {
-				return localDateTime;
+			LocalDateTime lLocalDateTime = lDayPane.convertClickToDateTime(x, y);
+			if (lLocalDateTime != null) {
+				return lLocalDateTime;
 			}
 		}
 		// or the day header panes
 		for (DayHeaderPane lDayHeaderPane : weekHeaderPane.dayHeaderPanes) {
-			LocalDateTime localDateTime = lDayHeaderPane.convertClickToDateTime(x, y);
-			if (localDateTime != null) {
-				return localDateTime;
+			LocalDateTime lLocalDateTime = lDayHeaderPane.convertClickToDateTime(x, y);
+			if (lLocalDateTime != null) {
+				return lLocalDateTime;
 			}
 		}
 		return null;

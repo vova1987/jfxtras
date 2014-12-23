@@ -41,8 +41,6 @@ import jfxtras.scene.control.agenda.Agenda;
  * @author Tom Eugelink
  */
 public class AgendaWeekSkin extends AgendaSkinTimeScale24HourAbstract {
-	// ==================================================================================================================
-	// CONSTRUCTOR
 	
 	/**
 	 * 

@@ -142,7 +142,6 @@ public class DayHeaderPane extends Pane {
 		return appointments.size();
 	}
 	
-	
 	/**
 	 * 
 	 */
